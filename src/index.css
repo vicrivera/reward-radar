@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap");
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-radar-bg text-radar-text-primary font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-radar-border-bright rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-radar-text-tertiary;
+  }
+}
+
+@layer components {
+  .radar-card {
+    @apply bg-radar-surface border border-radar-border rounded-xl;
+  }
+
+  .radar-card-elevated {
+    @apply bg-radar-elevated border border-radar-border rounded-xl;
+  }
+
+  .radar-glow {
+    box-shadow: 0 0 30px theme("colors.radar.accent-dim"),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .radar-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .signal-reward {
+    @apply bg-radar-accent-muted text-radar-accent border border-radar-accent/20;
+  }
+
+  .signal-burn {
+    @apply bg-radar-danger-dim text-radar-danger border border-radar-danger/20;
+  }
+
+  .signal-streak {
+    @apply bg-radar-warning-dim text-radar-warning border border-radar-warning/20;
+  }
+
+  .signal-unstake {
+    @apply bg-radar-info-dim text-radar-info border border-radar-info/20;
+  }
+}
+
+@layer utilities {
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-radar-accent to-emerald-400;
+  }
+}
