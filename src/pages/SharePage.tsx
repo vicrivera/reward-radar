@@ -11,7 +11,7 @@ import {
   ScoreRing,
 } from "@/components/shared/UIComponents";
 import { calculateOpportunityScore } from "@/engine";
-import { truncateAddress } from "@/utils";
+import { truncateAddress, getMoatInfo, getKnownMoatAddresses } from "@/utils";
 import { Radio, ExternalLink, Copy, Check } from "lucide-react";
 import { useState } from "react";
 
@@ -83,7 +83,7 @@ function SharedMoatView({
           </div>
           <div>
             <h1 className="text-lg font-display font-semibold text-radar-text-primary">
-              Moat alerts
+              {getMoatInfo(contractAddress).name}
             </h1>
             <p className="text-xs font-mono text-radar-text-tertiary">
               {truncateAddress(contractAddress, 8)}
@@ -164,6 +164,11 @@ function ShareLinkGenerator() {
   const [address, setAddress] = useState("");
   const [copied, setCopied] = useState<"link" | "embed" | null>(null);
 
+  const knownMoats = getKnownMoatAddresses().map((addr) => ({
+    address: addr,
+    ...getMoatInfo(addr),
+  }));
+
   const shareUrl = address
     ? `${window.location.origin}/share/${address}`
     : "";
@@ -184,13 +189,34 @@ function ShareLinkGenerator() {
           Share Moat alerts
         </h2>
         <p className="text-sm text-radar-text-secondary mt-1">
-          Generate a shareable link or embed widget for any Moat contract.
+          Generate a shareable link or embed widget for any Moat.
         </p>
       </div>
 
       <RadarCard>
+        {/* Quick pick known Moats */}
         <label className="text-[10px] text-radar-text-tertiary uppercase tracking-wider block mb-2">
-          Moat contract address
+          Select a Moat
+        </label>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {knownMoats.map((moat) => (
+            <button
+              key={moat.address}
+              onClick={() => setAddress(moat.address)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                address === moat.address
+                  ? "bg-radar-accent/15 text-radar-accent border border-radar-accent/30"
+                  : "bg-radar-bg border border-radar-border text-radar-text-secondary hover:text-radar-text-primary hover:border-radar-border-bright"
+              }`}
+            >
+              {moat.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Manual address input */}
+        <label className="text-[10px] text-radar-text-tertiary uppercase tracking-wider block mb-2">
+          Or enter a contract address
         </label>
         <input
           type="text"

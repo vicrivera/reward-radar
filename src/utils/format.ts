@@ -60,6 +60,7 @@ const KNOWN_TOKENS: Record<string, { symbol: string; decimals: number }> = {
   "0x152b9d0fdc40c096757f570a51e494bd4b943e50": { symbol: "BSGG", decimals: 18 },
   "0x18e3605b13f10016901eac609b9e188cf7c18973": { symbol: "HEFE", decimals: 18 },
   "0x201d04f88bc9b3bdacdf0519a95e117f25062d38": { symbol: "CAMRY", decimals: 18 },
+  "0x297731eb3cab3834525fc9ea061fd71d8f4645c9": { symbol: "MH", decimals: 18 },
 };
 
 export function getTokenInfo(address: string): { symbol: string; decimals: number } {

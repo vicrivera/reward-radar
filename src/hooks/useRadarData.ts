@@ -10,7 +10,7 @@ import {
   sendDiscordAlert,
 } from "@/engine";
 import { useRadarStore, getMatchingRules } from "@/stores/radarStore";
-import type { MoatEvent, RawMoatPoints, Signal } from "@/types";
+import type { MoatEvent, RawMoatPoints, Signal, RankSnapshot } from "@/types";
 
 // ─── Polling Intervals ──────────────────────────────────────────────────────
 
@@ -49,8 +49,6 @@ export function useSignalProcessor() {
   const { data: points } = useMoatPoints();
 
   const appendSignals = useRadarStore((s) => s.appendSignals);
-  const setPreviousRankSnapshot = useRadarStore((s) => s.setPreviousRankSnapshot);
-  const previousRankSnapshot = useRadarStore((s) => s.previousRankSnapshot);
   const lastSeenEventId = useRadarStore((s) => s.lastSeenEventId);
   const setLastSeenEventId = useRadarStore((s) => s.setLastSeenEventId);
   const discordWebhookUrl = useRadarStore((s) => s.discordWebhookUrl);
@@ -113,6 +111,10 @@ export function useSignalProcessor() {
   }, [events, points, lastSeenEventId, appendSignals, setLastSeenEventId, fireAlerts]);
 
   // Process points for streak detection
+  // Using a ref to avoid re-render loops — writing snapshot to state
+  // would trigger this same effect again since it's a dependency.
+  const rankSnapshotRef = useRef<RankSnapshot | null>(null);
+
   useEffect(() => {
     if (!points || points.length === 0) return;
 
@@ -124,15 +126,15 @@ export function useSignalProcessor() {
       weight: p.weight,
     }));
 
-    const streakSignals = detectStreakSignals(previousRankSnapshot, normalizedPoints);
+    const streakSignals = detectStreakSignals(rankSnapshotRef.current, normalizedPoints);
 
     if (streakSignals.length > 0) {
       appendSignals(streakSignals);
       fireAlerts(streakSignals);
     }
 
-    setPreviousRankSnapshot(createRankSnapshot(normalizedPoints));
-  }, [points, previousRankSnapshot, appendSignals, setPreviousRankSnapshot, fireAlerts]);
+    rankSnapshotRef.current = createRankSnapshot(normalizedPoints);
+  }, [points, appendSignals, fireAlerts]);
 }
 
 // ─── Contract-Specific Points Hook ──────────────────────────────────────────

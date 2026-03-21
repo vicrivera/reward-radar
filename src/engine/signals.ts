@@ -8,38 +8,117 @@ import type {
 import { formatTokenAmount, getTokenInfo, truncateAddress } from "@/utils";
 
 // ─── Signal ID Generator ────────────────────────────────────────────────────
+// Uses event IDs when available so the same event never produces duplicate signals.
 
-let signalCounter = 0;
-
-function makeSignalId(prefix: string): string {
-  return `${prefix}-${Date.now()}-${++signalCounter}`;
+function makeSignalId(prefix: string, eventId?: string): string {
+  if (eventId) return `${prefix}-${eventId}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-// ─── Severity Thresholds ────────────────────────────────────────────────────
+// ─── Token-Aware Severity ──────────────────────────────────────────────────
+// Calibrated against real Moats API data:
+// - USDC amounts are in 6 decimals (234271 = $0.23)
+// - WAVAX amounts are in 18 decimals (22235797971061259 = 0.022 AVAX)
+// - HEFE/CAMRY are in 18 decimals with large raw numbers
+// We convert to a human-readable value first, then apply token-class thresholds.
 
-function amountSeverity(weiAmount: string, decimals: number): SignalSeverity {
-  const value = Number(BigInt(weiAmount)) / 10 ** decimals;
+const STABLECOIN_TOKENS = new Set([
+  "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e", // USDC
+]);
 
-  if (value > 10_000) return "critical";
-  if (value > 1_000) return "high";
-  if (value > 100) return "medium";
+const NATIVE_TOKENS = new Set([
+  "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7", // WAVAX
+]);
+
+function tokenAwareSeverity(
+  weiAmount: string,
+  tokenAddress?: string
+): SignalSeverity {
+  const info = tokenAddress ? getTokenInfo(tokenAddress) : { decimals: 18 };
+  const value = Number(BigInt(weiAmount)) / 10 ** info.decimals;
+  const lower = tokenAddress?.toLowerCase() ?? "";
+
+  // Stablecoins — dollar thresholds
+  if (STABLECOIN_TOKENS.has(lower)) {
+    if (value >= 500) return "critical";
+    if (value >= 50) return "high";
+    if (value >= 5) return "medium";
+    return "low";
+  }
+
+  // WAVAX — AVAX-denominated thresholds
+  if (NATIVE_TOKENS.has(lower)) {
+    if (value >= 50) return "critical";
+    if (value >= 5) return "high";
+    if (value >= 0.5) return "medium";
+    return "low";
+  }
+
+  // Ecosystem tokens (HEFE, CAMRY, BSGG, etc.) — token count thresholds
+  if (value >= 10_000) return "critical";
+  if (value >= 1_000) return "high";
+  if (value >= 100) return "medium";
   return "low";
 }
 
-// ─── Reward Drop Detector ───────────────────────────────────────────────────
-// Groups RewardClaimed events by contract within a time window.
-// Flags contracts with high reward activity as opportunities.
+// Same logic but for native-denominated amounts (burns, exits, unstakes)
+// These don't have a token address — they're denominated in the Moat's staked token.
+function stakeAmountSeverity(weiAmount: string): SignalSeverity {
+  const value = Number(BigInt(weiAmount)) / 1e18;
+
+  if (value >= 50_000) return "critical";
+  if (value >= 10_000) return "high";
+  if (value >= 1_000) return "medium";
+  return "low";
+}
+
+// ─── Reward Drop Detector ──────────────────────────────────────────────────
+// Two signal types:
+//   1. Individual large claims (single event worth noting)
+//   2. Cluster signals (multiple claims on same contract = active reward distribution)
+// Window defaults to 24h because the API only returns 100 events total.
 
 export function detectRewardSignals(
   events: MoatEvent[],
-  windowMs: number = 3600_000 // 1 hour
+  windowMs: number = 86_400_000 // 24 hours
 ): Signal[] {
   const now = Date.now();
   const rewardEvents = events.filter(
     (e) => e.eventType === "RewardClaimed" && now - e.timestamp.getTime() < windowMs
   );
 
-  // Group by contract address
+  const signals: Signal[] = [];
+
+  // ── Individual large claims ──
+  for (const event of rewardEvents) {
+    if (!event.token || !event.amount) continue;
+
+    const severity = tokenAwareSeverity(event.amount, event.token);
+    if (severityRank(severity) < severityRank("medium")) continue; // Skip noise
+
+    const info = getTokenInfo(event.token);
+    const formatted = formatTokenAmount(event.amount, info.decimals, 2);
+    const userLabel = truncateAddress(event.user);
+
+    signals.push({
+      id: makeSignalId("reward", event.id),
+      type: "reward",
+      severity,
+      title: `${info.symbol} reward claimed`,
+      description: `${userLabel} claimed ${formatted} ${info.symbol}`,
+      contractAddress: event.contractAddress,
+      timestamp: event.timestamp,
+      eventIds: [event.id],
+      meta: {
+        user: event.user,
+        token: event.token,
+        amount: event.amount,
+        txHash: event.txHash,
+      },
+    });
+  }
+
+  // ── Cluster signals (multiple claims on same contract) ──
   const byContract = new Map<string, MoatEvent[]>();
   for (const event of rewardEvents) {
     const existing = byContract.get(event.contractAddress) ?? [];
@@ -47,50 +126,44 @@ export function detectRewardSignals(
     byContract.set(event.contractAddress, existing);
   }
 
-  const signals: Signal[] = [];
-
   for (const [contractAddress, contractEvents] of byContract) {
-    if (contractEvents.length < 2) continue; // Need multiple claims to be interesting
+    if (contractEvents.length < 3) continue; // Need 3+ claims to signal a cluster
 
-    // Find the highest-value claim for severity
-    let maxSeverity: SignalSeverity = "low";
-    const tokenClaims = new Map<string, bigint>();
+    // Count unique claimers
+    const uniqueClaimers = new Set(contractEvents.map((e) => e.user)).size;
 
+    // Aggregate per token
+    const tokenTotals = new Map<string, bigint>();
     for (const event of contractEvents) {
       if (event.token && event.amount) {
-        const current = tokenClaims.get(event.token) ?? 0n;
-        tokenClaims.set(event.token, current + BigInt(event.amount));
-
-        const info = getTokenInfo(event.token);
-        const sev = amountSeverity(event.amount, info.decimals);
-        if (severityRank(sev) > severityRank(maxSeverity)) {
-          maxSeverity = sev;
-        }
+        const current = tokenTotals.get(event.token) ?? 0n;
+        tokenTotals.set(event.token, current + BigInt(event.amount));
       }
     }
 
-    // Build description from aggregated claims
-    const claimSummaries = Array.from(tokenClaims.entries()).map(
-      ([tokenAddr, total]) => {
-        const info = getTokenInfo(tokenAddr);
-        return `${formatTokenAmount(total.toString(), info.decimals, 2)} ${info.symbol}`;
-      }
-    );
+    const summaries = Array.from(tokenTotals.entries()).map(([addr, total]) => {
+      const info = getTokenInfo(addr);
+      return `${formatTokenAmount(total.toString(), info.decimals, 2)} ${info.symbol}`;
+    });
+
+    // Severity based on cluster size and unique claimers
+    const clusterSeverity: SignalSeverity =
+      uniqueClaimers >= 5 ? "critical" :
+      uniqueClaimers >= 3 ? "high" :
+      contractEvents.length >= 5 ? "medium" : "low";
 
     signals.push({
-      id: makeSignalId("reward"),
+      id: makeSignalId("reward-cluster", contractAddress),
       type: "reward",
-      severity: maxSeverity,
-      title: `Reward activity spike`,
-      description: `${contractEvents.length} claims in the last hour: ${claimSummaries.join(", ")}`,
+      severity: clusterSeverity,
+      title: `Active reward distribution`,
+      description: `${contractEvents.length} claims by ${uniqueClaimers} wallet${uniqueClaimers > 1 ? "s" : ""}: ${summaries.join(", ")}`,
       contractAddress,
       timestamp: contractEvents[0]!.timestamp,
       eventIds: contractEvents.map((e) => e.id),
       meta: {
         claimCount: contractEvents.length,
-        tokenClaims: Object.fromEntries(
-          Array.from(tokenClaims.entries()).map(([k, v]) => [k, v.toString()])
-        ),
+        uniqueClaimers,
       },
     });
   }
@@ -98,9 +171,7 @@ export function detectRewardSignals(
   return signals;
 }
 
-// ─── Burn / Early Exit Detector ─────────────────────────────────────────────
-// Watches for Burned and EarlyExit events. Large fees on early exits
-// signal conviction shifts — potential entry opportunities for others.
+// ─── Burn / Early Exit Detector ────────────────────────────────────────────
 
 export function detectBurnSignals(events: MoatEvent[]): Signal[] {
   const signals: Signal[] = [];
@@ -111,35 +182,37 @@ export function detectBurnSignals(events: MoatEvent[]): Signal[] {
 
   for (const event of burnEvents) {
     const amount = event.amount ?? "0";
-    const info = { symbol: "tokens", decimals: 18 }; // Burns use native token
-    const formattedAmount = formatTokenAmount(amount, info.decimals, 2);
+    const formattedAmount = formatTokenAmount(amount, 18, 2);
     const userLabel = truncateAddress(event.user);
 
     if (event.eventType === "EarlyExit" && event.fee) {
       const formattedFee = formatTokenAmount(event.fee, 18, 2);
+      const feePercent = (
+        (Number(BigInt(event.fee)) / Number(BigInt(amount))) * 100
+      ).toFixed(1);
 
       signals.push({
-        id: makeSignalId("burn"),
+        id: makeSignalId("burn", event.id),
         type: "burn",
-        severity: amountSeverity(amount, 18),
-        title: `Early exit with penalty`,
-        description: `${userLabel} exited ${formattedAmount} tokens, paid ${formattedFee} fee. Fewer stakers = bigger share for remaining.`,
+        severity: stakeAmountSeverity(amount),
+        title: `Early exit — ${feePercent}% penalty`,
+        description: `${userLabel} exited ${formattedAmount} tokens, paid ${formattedFee} fee (${feePercent}%). Fewer stakers = bigger share.`,
         contractAddress: event.contractAddress,
         timestamp: event.timestamp,
         eventIds: [event.id],
-        meta: { fee: event.fee, amount, user: event.user },
+        meta: { fee: event.fee, amount, user: event.user, txHash: event.txHash },
       });
     } else if (event.eventType === "Burned") {
       signals.push({
-        id: makeSignalId("burn"),
+        id: makeSignalId("burn", event.id),
         type: "burn",
-        severity: amountSeverity(amount, 18),
+        severity: stakeAmountSeverity(amount),
         title: `Token burn detected`,
         description: `${userLabel} burned ${formattedAmount} tokens. Supply reduction in this Moat.`,
         contractAddress: event.contractAddress,
         timestamp: event.timestamp,
         eventIds: [event.id],
-        meta: { amount, user: event.user },
+        meta: { amount, user: event.user, txHash: event.txHash },
       });
     }
   }
@@ -147,8 +220,7 @@ export function detectBurnSignals(events: MoatEvent[]): Signal[] {
   return signals;
 }
 
-// ─── Unstake Detector ───────────────────────────────────────────────────────
-// LockExited events with large amounts signal capital leaving a Moat.
+// ─── Unstake Detector ──────────────────────────────────────────────────────
 
 export function detectUnstakeSignals(
   events: MoatEvent[],
@@ -162,16 +234,15 @@ export function detectUnstakeSignals(
     const amount = event.amount ?? "0";
     const formattedAmount = formatTokenAmount(amount, 18, 2);
     const userLabel = truncateAddress(event.user);
-    const isTopWallet = topWallets?.has(event.user.toLowerCase());
+    const isTopWallet = topWallets?.has(event.user.toLowerCase()) ?? false;
 
-    const baseSeverity = amountSeverity(amount, 18);
-    // Bump severity if it's a top wallet
+    const baseSeverity = stakeAmountSeverity(amount);
     const severity: SignalSeverity = isTopWallet
       ? bumpSeverity(baseSeverity)
       : baseSeverity;
 
     signals.push({
-      id: makeSignalId("unstake"),
+      id: makeSignalId("unstake", event.id),
       type: "unstake",
       severity,
       title: isTopWallet ? `Top wallet unstaked` : `Lock exited`,
@@ -179,21 +250,27 @@ export function detectUnstakeSignals(
       contractAddress: event.contractAddress,
       timestamp: event.timestamp,
       eventIds: [event.id],
-      meta: { amount, user: event.user, isTopWallet },
+      meta: { amount, user: event.user, isTopWallet, txHash: event.txHash },
     });
   }
 
   return signals;
 }
 
-// ─── Hot Streak Detector ────────────────────────────────────────────────────
-// Compares two rank snapshots to find wallets that jumped 5+ positions.
+// ─── Hot Streak Detector ───────────────────────────────────────────────────
+// Compares two rank snapshots. Since we poll every 60s but ranks change slowly,
+// we lower the threshold to 3+ ranks to catch movement in this ecosystem.
 
 export function detectStreakSignals(
   previous: RankSnapshot | null,
   current: MoatPointsEntry[]
 ): Signal[] {
   if (!previous) return [];
+
+  // Don't fire streaks if the snapshot is less than 2 minutes old
+  // (avoids noise from rapid re-polls)
+  const elapsed = Date.now() - previous.timestamp.getTime();
+  if (elapsed < 120_000) return [];
 
   const signals: Signal[] = [];
 
@@ -204,21 +281,23 @@ export function detectStreakSignals(
     const rankDelta = prevEntry.rank - entry.rank; // Positive = moved up
     const pointsDelta = entry.points - prevEntry.points;
 
-    if (rankDelta >= 5 && pointsDelta > 0) {
+    if (rankDelta >= 3 && pointsDelta > 0) {
       const severity: SignalSeverity =
-        rankDelta >= 20 ? "critical" : rankDelta >= 10 ? "high" : "medium";
+        rankDelta >= 15 ? "critical" :
+        rankDelta >= 8 ? "high" :
+        rankDelta >= 5 ? "medium" : "low";
 
       const userLabel = entry.username !== entry.address
         ? entry.username
         : truncateAddress(entry.address);
 
       signals.push({
-        id: makeSignalId("streak"),
+        id: makeSignalId("streak", entry.address),
         type: "streak",
         severity,
         title: `Hot streak: +${rankDelta} ranks`,
         description: `${userLabel} jumped from #${prevEntry.rank} to #${entry.rank} (+${pointsDelta.toLocaleString()} pts). Aggressive accumulation.`,
-        contractAddress: "", // Global signal, not contract-specific
+        contractAddress: "",
         timestamp: new Date(),
         eventIds: [],
         meta: {
@@ -239,7 +318,15 @@ export function detectStreakSignals(
   });
 }
 
-// ─── Opportunity Score Calculator ───────────────────────────────────────────
+// ─── Opportunity Score Calculator ──────────────────────────────────────────
+// Now uses severity-weighted scoring instead of raw signal count.
+
+const SEVERITY_WEIGHT: Record<SignalSeverity, number> = {
+  low: 5,
+  medium: 15,
+  high: 35,
+  critical: 50,
+};
 
 export function calculateOpportunityScore(
   rewardSignals: Signal[],
@@ -259,20 +346,13 @@ export function calculateOpportunityScore(
       (s) => s.contractAddress === contractAddress || s.contractAddress === ""
     );
 
-  // Normalize each component 0-100
-  const rewardVelocity = Math.min(
-    100,
-    forContract(rewardSignals).length * 25
-  );
-  const burnRate = Math.min(100, forContract(burnSignals).length * 30);
-  const rankVolatility = Math.min(
-    100,
-    forContract(streakSignals).length * 20
-  );
-  const entrySignals = Math.min(
-    100,
-    forContract(unstakeSignals).length * 35
-  );
+  const weightedScore = (signals: Signal[]) =>
+    Math.min(100, signals.reduce((sum, s) => sum + SEVERITY_WEIGHT[s.severity], 0));
+
+  const rewardVelocity = weightedScore(forContract(rewardSignals));
+  const burnRate = weightedScore(forContract(burnSignals));
+  const rankVolatility = weightedScore(forContract(streakSignals));
+  const entrySignals = weightedScore(forContract(unstakeSignals));
 
   const score = Math.round(
     rewardVelocity * 0.4 +
@@ -284,7 +364,7 @@ export function calculateOpportunityScore(
   return { score, rewardVelocity, burnRate, rankVolatility, entrySignals };
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────
 
 function severityRank(severity: SignalSeverity): number {
   const ranks: Record<SignalSeverity, number> = {
