@@ -12,8 +12,9 @@ import {
 } from "@/components/shared/UIComponents";
 import { calculateOpportunityScore } from "@/engine";
 import { truncateAddress, getMoatInfo, getKnownMoatAddresses } from "@/utils";
-import { Radio, ExternalLink, Copy, Check } from "lucide-react";
+import { Radio, ExternalLink, Copy, Check, ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export function SharePage() {
   const { contractAddress } = useParams<{ contractAddress?: string }>();
@@ -77,21 +78,41 @@ function SharedMoatView({
     <div className={wrapper}>
       {/* Header */}
       {!isEmbed && (
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-radar-accent to-emerald-500 flex items-center justify-center">
-            <Radio size={18} className="text-radar-bg" />
-          </div>
-          <div>
-            <h1 className="text-lg font-display font-semibold text-radar-text-primary">
-              {getMoatInfo(contractAddress).name}
-            </h1>
-            <p className="text-xs font-mono text-radar-text-tertiary">
-              {truncateAddress(contractAddress, 8)}
-            </p>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <PulseDot />
-            <span className="text-xs text-radar-text-secondary">Live</span>
+        <div className="mb-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs text-radar-text-tertiary hover:text-radar-text-secondary transition-colors mb-4"
+          >
+            <ArrowLeft size={12} />
+            Back to feed
+          </Link>
+          <div className="flex items-center gap-3">
+            {getMoatInfo(contractAddress).imageUrl ? (
+              <img
+                src={getMoatInfo(contractAddress).imageUrl}
+                alt={getMoatInfo(contractAddress).name}
+                className="w-10 h-10 rounded-lg object-cover bg-radar-elevated"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-radar-accent to-amber-600 flex items-center justify-center">
+                <Radio size={18} className="text-radar-bg" />
+              </div>
+            )}
+            <div>
+              <h1 className="text-lg font-display font-semibold text-radar-text-primary">
+                {getMoatInfo(contractAddress).name}
+              </h1>
+              <p className="text-xs font-mono text-radar-text-tertiary">
+                {truncateAddress(contractAddress, 8)}
+              </p>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <PulseDot />
+              <span className="text-xs text-radar-text-secondary">Live</span>
+            </div>
           </div>
         </div>
       )}

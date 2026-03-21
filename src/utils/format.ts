@@ -57,10 +57,13 @@ export function formatCompact(value: number): string {
 const KNOWN_TOKENS: Record<string, { symbol: string; decimals: number }> = {
   "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7": { symbol: "WAVAX", decimals: 18 },
   "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e": { symbol: "USDC", decimals: 6 },
-  "0x152b9d0fdc40c096757f570a51e494bd4b943e50": { symbol: "BSGG", decimals: 18 },
+  "0x152b9d0fdc40c096757f570a51e494bd4b943e50": { symbol: "BTC.b", decimals: 18 },
   "0x18e3605b13f10016901eac609b9e188cf7c18973": { symbol: "HEFE", decimals: 18 },
-  "0x201d04f88bc9b3bdacdf0519a95e117f25062d38": { symbol: "CAMRY", decimals: 18 },
-  "0x297731eb3cab3834525fc9ea061fd71d8f4645c9": { symbol: "MH", decimals: 18 },
+  "0x201d04f88bc9b3bdacdf0519a95e117f25062d38": { symbol: "FREAK", decimals: 18 },
+  "0x297731eb3cab3834525fc9ea061fd71d8f4645c9": { symbol: "BLAZE", decimals: 18 },
+  "0xeb55fab1c23ec0aa5024ee593a12edcd031ecd9b": { symbol: "WHEREMALEK", decimals: 18 },
+  "0xb8d7710f7d8349a506b75dd184f05777c82dad0c": { symbol: "ARENA", decimals: 18 },
+  "0x22683bbadd01473969f23709879187705a253763": { symbol: "LIL", decimals: 18 }
 };
 
 export function getTokenInfo(address: string): { symbol: string; decimals: number } {

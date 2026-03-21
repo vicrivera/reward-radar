@@ -22,10 +22,15 @@ interface RadarState {
   discordWebhookUrl: string;
   alertRules: AlertRule[];
 
-  // Runtime state (not persisted)
+  // Persisted signal history
   signals: Signal[];
-  previousRankSnapshot: RankSnapshot | null;
   lastSeenEventId: string | null;
+
+  // Persisted badge state — once earned, permanent
+  earnedBadgeIds: Record<string, string>; // badge ID → ISO timestamp of when earned
+
+  // Runtime state (not persisted)
+  previousRankSnapshot: RankSnapshot | null;
   isPolling: boolean;
 
   // Actions
@@ -39,6 +44,8 @@ interface RadarState {
   updateAlertRule: (id: string, updates: Partial<AlertRule>) => void;
   setSignals: (signals: Signal[]) => void;
   appendSignals: (signals: Signal[]) => void;
+  clearSignals: () => void;
+  earnBadge: (badgeId: string) => void;
   setPreviousRankSnapshot: (snapshot: RankSnapshot) => void;
   setLastSeenEventId: (id: string) => void;
   setIsPolling: (polling: boolean) => void;
@@ -60,6 +67,7 @@ export const useRadarStore = create<RadarState>()(
       signals: [],
       previousRankSnapshot: null,
       lastSeenEventId: null,
+      earnedBadgeIds: {},
       isPolling: false,
 
       // Actions
@@ -104,7 +112,20 @@ export const useRadarStore = create<RadarState>()(
         set((state) => {
           const existingIds = new Set(state.signals.map((s) => s.id));
           const unique = newSignals.filter((s) => !existingIds.has(s.id));
-          return { signals: [...unique, ...state.signals].slice(0, 200) }; // Cap at 200
+          return { signals: [...unique, ...state.signals].slice(0, 200) };
+        }),
+
+      clearSignals: () => set({ signals: [], lastSeenEventId: null }),
+
+      earnBadge: (badgeId) =>
+        set((state) => {
+          if (state.earnedBadgeIds[badgeId]) return state; // Already earned
+          return {
+            earnedBadgeIds: {
+              ...state.earnedBadgeIds,
+              [badgeId]: new Date().toISOString(),
+            },
+          };
         }),
 
       setPreviousRankSnapshot: (snapshot) =>
@@ -122,7 +143,19 @@ export const useRadarStore = create<RadarState>()(
         timeRange: state.timeRange,
         discordWebhookUrl: state.discordWebhookUrl,
         alertRules: state.alertRules,
+        signals: state.signals.slice(0, 100), // Persist last 100 to keep localStorage lean
+        lastSeenEventId: state.lastSeenEventId,
+        earnedBadgeIds: state.earnedBadgeIds,
       }),
+      // Signals contain Date objects which JSON.stringify converts to strings.
+      // We rehydrate them back to Date objects on load.
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        state.signals = state.signals.map((s) => ({
+          ...s,
+          timestamp: new Date(s.timestamp),
+        }));
+      },
     }
   )
 );

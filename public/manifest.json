@@ -4,8 +4,8 @@
   "description": "Real-time opportunity scanner for the Moats ecosystem on Avalanche",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0A0B0F",
-  "theme_color": "#00E5A0",
+  "background_color": "#080B12",
+  "theme_color": "#E5A833",
   "icons": [
     {
       "src": "/radar-icon.svg",

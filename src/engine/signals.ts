@@ -5,7 +5,7 @@ import type {
   SignalSeverity,
   RankSnapshot,
 } from "@/types";
-import { formatTokenAmount, getTokenInfo, truncateAddress } from "@/utils";
+import { formatTokenAmount, getTokenInfo, truncateAddress, getMoatInfo } from "@/utils";
 
 // ─── Signal ID Generator ────────────────────────────────────────────────────
 // Uses event IDs when available so the same event never produces duplicate signals.
@@ -184,6 +184,7 @@ export function detectBurnSignals(events: MoatEvent[]): Signal[] {
     const amount = event.amount ?? "0";
     const formattedAmount = formatTokenAmount(amount, 18, 2);
     const userLabel = truncateAddress(event.user);
+    const moatName = getMoatInfo(event.contractAddress).name;
 
     if (event.eventType === "EarlyExit" && event.fee) {
       const formattedFee = formatTokenAmount(event.fee, 18, 2);
@@ -196,7 +197,7 @@ export function detectBurnSignals(events: MoatEvent[]): Signal[] {
         type: "burn",
         severity: stakeAmountSeverity(amount),
         title: `Early exit — ${feePercent}% penalty`,
-        description: `${userLabel} exited ${formattedAmount} tokens, paid ${formattedFee} fee (${feePercent}%). Fewer stakers = bigger share.`,
+        description: `${userLabel} exited ${formattedAmount} from ${moatName}, paid ${formattedFee} fee (${feePercent}%). Fewer stakers = bigger share.`,
         contractAddress: event.contractAddress,
         timestamp: event.timestamp,
         eventIds: [event.id],
@@ -207,8 +208,8 @@ export function detectBurnSignals(events: MoatEvent[]): Signal[] {
         id: makeSignalId("burn", event.id),
         type: "burn",
         severity: stakeAmountSeverity(amount),
-        title: `Token burn detected`,
-        description: `${userLabel} burned ${formattedAmount} tokens. Supply reduction in this Moat.`,
+        title: `Burn in ${moatName}`,
+        description: `${userLabel} burned ${formattedAmount} from ${moatName}. Supply reduction = bigger share for remaining stakers.`,
         contractAddress: event.contractAddress,
         timestamp: event.timestamp,
         eventIds: [event.id],
@@ -234,6 +235,7 @@ export function detectUnstakeSignals(
     const amount = event.amount ?? "0";
     const formattedAmount = formatTokenAmount(amount, 18, 2);
     const userLabel = truncateAddress(event.user);
+    const moatName = getMoatInfo(event.contractAddress).name;
     const isTopWallet = topWallets?.has(event.user.toLowerCase()) ?? false;
 
     const baseSeverity = stakeAmountSeverity(amount);
@@ -245,8 +247,8 @@ export function detectUnstakeSignals(
       id: makeSignalId("unstake", event.id),
       type: "unstake",
       severity,
-      title: isTopWallet ? `Top wallet unstaked` : `Lock exited`,
-      description: `${userLabel} unlocked ${formattedAmount} tokens${isTopWallet ? " (top ranked wallet)" : ""}. Watch for follow-up moves.`,
+      title: isTopWallet ? `Top wallet exited ${moatName}` : `Lock exited in ${moatName}`,
+      description: `${userLabel} unlocked ${formattedAmount} from ${moatName}${isTopWallet ? " (top ranked wallet)" : ""}. Watch for follow-up moves.`,
       contractAddress: event.contractAddress,
       timestamp: event.timestamp,
       eventIds: [event.id],

@@ -16,3 +16,10 @@ export {
 } from "./contracts";
 
 export type { MoatInfo } from "./contracts";
+
+export {
+  requestNotificationPermission,
+  getNotificationPermission,
+  sendBrowserNotification,
+  shouldNotify,
+} from "./notifications";

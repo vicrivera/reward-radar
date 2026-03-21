@@ -10,6 +10,7 @@ import {
   sendDiscordAlert,
 } from "@/engine";
 import { useRadarStore, getMatchingRules } from "@/stores/radarStore";
+import { sendBrowserNotification, shouldNotify } from "@/utils";
 import type { MoatEvent, RawMoatPoints, Signal, RankSnapshot } from "@/types";
 
 // ─── Polling Intervals ──────────────────────────────────────────────────────
@@ -58,12 +59,18 @@ export function useSignalProcessor() {
 
   const fireAlerts = useCallback(
     async (signals: Signal[]) => {
-      if (!discordWebhookUrl || alertRules.length === 0) return;
-
       for (const signal of signals) {
-        const matchingRules = getMatchingRules(signal, alertRules);
-        if (matchingRules.length > 0) {
-          await sendDiscordAlert(discordWebhookUrl, signal);
+        // Browser notifications for high/critical — always, no config needed
+        if (shouldNotify(signal)) {
+          sendBrowserNotification(signal);
+        }
+
+        // Discord webhook alerts — only if configured with matching rules
+        if (discordWebhookUrl && alertRules.length > 0) {
+          const matchingRules = getMatchingRules(signal, alertRules);
+          if (matchingRules.length > 0) {
+            await sendDiscordAlert(discordWebhookUrl, signal);
+          }
         }
       }
     },

@@ -128,19 +128,34 @@ function OpportunityRow({
   const moatInfo = getMoatInfo(opportunity.contractAddress);
 
   return (
-    <div className="rounded-lg bg-radar-bg/50 overflow-hidden transition-colors">
+    <div
+      className="rounded-lg bg-radar-bg/50 overflow-hidden transition-colors"
+      style={moatInfo.accentColor ? { borderLeft: `3px solid ${moatInfo.accentColor}33` } : undefined}
+    >
       {/* Main row — clickable */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-3 p-3 w-full text-left hover:bg-radar-bg/80 transition-colors"
+        className="flex items-center gap-2.5 p-2.5 w-full text-left hover:bg-radar-bg/80 transition-colors"
       >
         {/* Rank */}
-        <span className="text-xs font-mono text-radar-text-tertiary w-5 text-right flex-shrink-0">
+        <span className="text-[10px] font-mono text-radar-text-tertiary w-5 text-right flex-shrink-0">
           #{rank}
         </span>
 
+        {/* Moat image */}
+        {moatInfo.imageUrl && (
+          <img
+            src={moatInfo.imageUrl}
+            alt={moatInfo.name}
+            className="w-7 h-7 rounded-md object-cover flex-shrink-0 bg-radar-elevated"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+        )}
+
         {/* Score ring */}
-        <ScoreRing score={opportunity.score} size={40} />
+        <ScoreRing score={opportunity.score} size={34} />
 
         {/* Moat info */}
         <div className="flex-1 min-w-0">
@@ -151,22 +166,13 @@ function OpportunityRow({
             {opportunity.recentSignals.length > 0
               ? `${opportunity.recentSignals.length} signal${opportunity.recentSignals.length !== 1 ? "s" : ""}`
               : "Quiet"}
-            {moatInfo.description ? ` · ${moatInfo.description}` : ""}
           </span>
         </div>
 
-        {/* Mini-bars + expand icon */}
-        <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
-          <MiniBar value={opportunity.rewardVelocity} color="bg-radar-accent" label="R" />
-          <MiniBar value={opportunity.burnRate} color="bg-radar-danger" label="B" />
-          <MiniBar value={opportunity.rankVolatility} color="bg-radar-warning" label="V" />
-          <MiniBar value={opportunity.entrySignals} color="bg-radar-info" label="E" />
-        </div>
-
         {expanded ? (
-          <ChevronUp size={14} className="text-radar-text-tertiary flex-shrink-0" />
+          <ChevronUp size={12} className="text-radar-text-tertiary flex-shrink-0" />
         ) : (
-          <ChevronDown size={14} className="text-radar-text-tertiary flex-shrink-0" />
+          <ChevronDown size={12} className="text-radar-text-tertiary flex-shrink-0" />
         )}
       </button>
 

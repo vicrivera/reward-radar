@@ -4,6 +4,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { AlertsPage } from "@/pages/AlertsPage";
 import { SharePage } from "@/pages/SharePage";
+import { ComparePage } from "@/pages/ComparePage";
+import { HowItWorksPage } from "@/pages/HowItWorksPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,7 +37,9 @@ export default function App() {
           {/* Main app routes with layout */}
           <Route element={<LayoutRoute />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/compare" element={<ComparePage />} />
             <Route path="/alerts" element={<AlertsPage />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/share" element={<SharePage />} />
           </Route>
         </Routes>

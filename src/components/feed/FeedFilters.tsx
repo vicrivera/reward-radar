@@ -1,5 +1,4 @@
 import { useRadarStore } from "@/stores/radarStore";
-import { PulseDot } from "@/components/shared/UIComponents";
 import type { FeedFilter, TimeRange } from "@/types";
 
 const FILTER_OPTIONS: { value: FeedFilter; label: string; icon: string }[] = [
@@ -17,14 +16,14 @@ const TIME_OPTIONS: { value: TimeRange; label: string }[] = [
   { value: "7d", label: "7D" },
 ];
 
-export function FeedFilters({ signalCount }: { signalCount: number }) {
+export function FeedFilters() {
   const feedFilter = useRadarStore((s) => s.feedFilter);
   const setFeedFilter = useRadarStore((s) => s.setFeedFilter);
   const timeRange = useRadarStore((s) => s.timeRange);
   const setTimeRange = useRadarStore((s) => s.setTimeRange);
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       {/* Signal type filters */}
       <div className="flex items-center gap-1 bg-radar-surface border border-radar-border rounded-lg p-1">
         {FILTER_OPTIONS.map((option) => (
@@ -58,14 +57,6 @@ export function FeedFilters({ signalCount }: { signalCount: number }) {
             {option.label}
           </button>
         ))}
-      </div>
-
-      {/* Live indicator + count */}
-      <div className="flex items-center gap-2 ml-auto">
-        <PulseDot />
-        <span className="text-xs text-radar-text-secondary font-mono">
-          {signalCount} signal{signalCount !== 1 ? "s" : ""}
-        </span>
       </div>
     </div>
   );
