@@ -24,7 +24,7 @@ Every Moat gets an **Opportunity Score** (0–100) that answers one question: "H
 
 ## Screenshots
 
-> Add screenshots here before submission.
+![alt text](image.png)
 
 ## Tech Stack
 
