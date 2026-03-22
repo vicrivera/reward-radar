@@ -1,6 +1,7 @@
 import { SignalFeed } from "@/components/feed/SignalFeed";
 import { OpportunityBoard } from "@/components/feed/OpportunityBoard";
 import { StatsHeader } from "@/components/feed/StatsHeader";
+import { BadgeShowcase } from "@/components/feed/BadgeShowcase";
 
 export function DashboardPage() {
   return (
@@ -18,6 +19,10 @@ export function DashboardPage() {
         <div className="xl:w-80 flex-shrink-0">
           <div className="space-y-4">
             <OpportunityBoard />
+            {/* Badges — mobile only (desktop shows them in the sidebar) */}
+            <div className="lg:hidden">
+              <BadgeShowcase />
+            </div>
           </div>
         </div>
       </div>

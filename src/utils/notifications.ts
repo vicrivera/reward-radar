@@ -5,7 +5,7 @@ import { getMoatInfo } from "./contracts";
 
 /** Requests notification permission. Returns true if granted. */
 export async function requestNotificationPermission(): Promise<boolean> {
-  if (!("Notification" in window)) return false;
+  if (!("Notification" in globalThis)) return false;
   if (Notification.permission === "granted") return true;
   if (Notification.permission === "denied") return false;
 
@@ -14,7 +14,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 export function getNotificationPermission(): NotificationPermission | "unsupported" {
-  if (!("Notification" in window)) return "unsupported";
+  if (!("Notification" in globalThis)) return "unsupported";
   return Notification.permission;
 }
 
