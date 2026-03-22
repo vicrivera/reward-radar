@@ -18,7 +18,7 @@ interface SignalCardProps {
   index: number;
 }
 
-export function SignalCard({ signal, index }: SignalCardProps) {
+export function SignalCard({ signal, index }: Readonly<SignalCardProps>) {
   const [expanded, setExpanded] = useState(false);
   const txUrl = getTxLink(signal);
 
@@ -86,10 +86,10 @@ export function SignalCard({ signal, index }: SignalCardProps) {
 function SignalDetail({
   signal,
   txUrl,
-}: {
+}: Readonly<{
   signal: Signal;
   txUrl: string | null;
-}) {
+}>) {
   const meta = signal.meta as Record<string, unknown>;
   const userAddress = (meta.user as string) ?? (meta.address as string);
   const tokenAddress = meta.token as string | undefined;
@@ -172,11 +172,11 @@ function DetailRow({
   label,
   value,
   href,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   href?: string;
-}) {
+}>) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-[10px] text-radar-text-tertiary uppercase tracking-wider">

@@ -40,8 +40,7 @@ Side-by-side view of all Moats with score breakdowns, verdicts ("Hot opportunity
 ### Alerts
 - **Browser notifications** — one-click enable, instant desktop alerts for high/critical signals
 - **Sound alerts** — toggle on for audio pings when important signals land
-- **Discord webhooks** — send formatted alerts to any Discord channel with configurable rules (signal type, severity, contract filter)
-- **Email & Telegram** — coming soon (architecture ready)
+- **Email & Telegram** — coming soon. Notifications won't give you the full picture — they'll tell you something big happened and bring you back to the dashboard to analyze and decide. This keeps API usage minimal (no background polling) while giving you timely alerts even when you're away.
 
 ### Shareable Alert Pages
 Generate a link for any Moat that shows a live signal feed. Embed it on your project's website with a single iframe snippet. Useful for Moat creators who want to show their community what's happening.
@@ -80,7 +79,7 @@ Built-in documentation explaining the app in plain language for non-technical us
 | Routing | React Router v7 |
 | Deployment | Vercel |
 
-**No backend required.** The app is fully client-side. API polling, signal detection, Discord webhooks, and browser notifications all run in the browser. User preferences, signal history, and earned badges persist in localStorage.
+**No backend required.** The app is fully client-side. API polling, signal detection, and browser notifications all run in the browser. User preferences, signal history, and earned badges persist in localStorage.
 
 ---
 
@@ -103,7 +102,7 @@ Best practices followed: retry with exponential backoff, response caching, event
 ```
 src/
 ├── api/           Moats API client (fetch, retry, normalize)
-├── engine/        Signal detection (pure functions), Discord webhooks, badge logic
+├── engine/        Signal detection (pure functions), badge evaluation logic
 ├── hooks/         React Query polling hooks + signal processor
 ├── stores/        Zustand store (preferences, signals, badges — persisted)
 ├── components/
@@ -158,9 +157,10 @@ Live URL: **[your-url-here]**
 
 ## Roadmap (Post-Hackathon)
 
-- [ ] Email alerts via custom server endpoint
-- [ ] Telegram bot integration
+- [ ] Email alerts — server-side signal detection with lightweight notifications that drive users back to the dashboard
+- [ ] Telegram bot — real-time DM alerts for the fastest response time
 - [ ] Supabase backend for global leaderboard and cross-device sync
+- [ ] Notification pipeline powered by active users (zero additional API load — active browser sessions relay signals to the backend for inactive users)
 - [ ] Wallet connection (read-only, for personalized signals)
 - [ ] Historical opportunity score charts per Moat
 - [ ] More Moat contract discovery (auto-detect from events)

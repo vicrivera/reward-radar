@@ -1,26 +1,20 @@
 import { useState, useEffect } from "react";
-import { useRadarStore } from "@/stores/radarStore";
 import { RadarCard } from "@/components/shared/UIComponents";
-import { sendDiscordAlert } from "@/engine";
 import {
   requestNotificationPermission,
   getNotificationPermission,
+  sendBrowserNotification,
 } from "@/utils";
-import type { Signal, SignalType, SignalSeverity } from "@/types";
+import type { Signal } from "@/types";
 import {
   BellRing,
   Volume2,
   VolumeX,
   Check,
   X,
-  ChevronDown,
-  ChevronUp,
-  Trash2,
-  Plus,
-  TestTube2,
-  MessageSquare,
   Mail,
   Send,
+  Rocket,
 } from "lucide-react";
 
 export function AlertsPage() {
@@ -30,27 +24,27 @@ export function AlertsPage() {
         <h2 className="text-lg font-display font-semibold text-radar-text-primary">
           Alerts
         </h2>
-        <p className="text-sm text-radar-text-secondary mt-1">
-          Get notified when the radar detects opportunities. No setup
-          required — just enable notifications.
+        <p className="text-sm text-radar-text-secondary mt-1 leading-relaxed">
+          Get notified when the radar detects big moves. Alerts tell you
+          something happened — come back to the dashboard to see the full
+          picture and decide.
         </p>
       </div>
 
       <div className="space-y-4">
         <BrowserNotificationCard />
         <SoundAlertCard />
-        <DiscordCard />
-        <ComingSoonChannels />
-        <AlertRulesCard />
+        <ComingSoonSection />
       </div>
     </div>
   );
 }
 
-// ─── Browser Notifications (primary) ────────────────────────────────────────
+// ─── Browser Notifications (primary, works today) ───────────────────────────
 
 function BrowserNotificationCard() {
   const [permission, setPermission] = useState(getNotificationPermission);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     const handler = () => setPermission(getNotificationPermission());
@@ -65,6 +59,26 @@ function BrowserNotificationCard() {
     setPermission(granted ? "granted" : "denied");
   };
 
+  const handleTest = () => {
+    const testSignal: Signal = {
+      id: `test-${Date.now()}`,
+      type: "reward",
+      severity: "medium",
+      title: "Reward spike in HEFE Moat",
+      description: "If you see this, browser notifications are working!",
+      contractAddress: "0x0000000000000000000000000000000000000000",
+      timestamp: new Date(),
+      eventIds: [],
+      meta: {},
+    };
+
+    try {
+      sendBrowserNotification(testSignal);
+    } catch (err) {
+      console.error("Notification failed:", err);
+    }
+  };
+
   return (
     <RadarCard className={permission === "granted" ? "radar-glow" : ""}>
       <div className="flex items-center gap-3">
@@ -73,22 +87,15 @@ function BrowserNotificationCard() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-radar-text-primary">
-              Browser notifications
-            </h3>
-            {permission === "granted" && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-radar-accent/15 text-radar-accent font-medium">
-                Recommended
-              </span>
-            )}
-          </div>
+          <h3 className="text-sm font-semibold text-radar-text-primary">
+            Browser notifications
+          </h3>
           <p className="text-[11px] text-radar-text-secondary mt-0.5">
             {permission === "granted"
-              ? "You'll get instant desktop alerts for high and critical signals. No setup needed."
+              ? "Active — you'll get desktop alerts when signals are detected while the dashboard is open."
               : permission === "denied"
-                ? "Notifications are blocked. Click the lock icon in your browser's address bar to enable them."
-                : "One click to enable. You'll get instant desktop alerts when critical signals are detected."}
+                ? "Blocked — click the lock icon in your browser's address bar to enable."
+                : "One click to enable. Get desktop alerts when the radar detects opportunities."}
           </p>
         </div>
 
@@ -111,6 +118,48 @@ function BrowserNotificationCard() {
           </button>
         )}
       </div>
+
+      {permission === "granted" && (
+        <div className="mt-3">
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className="text-[10px] text-radar-text-tertiary hover:text-radar-text-secondary transition-colors"
+          >
+            {showHelp ? "Hide help" : "Not seeing notifications?"}
+          </button>
+
+          {showHelp && (
+            <div className="mt-2 p-3 rounded-lg bg-radar-bg border border-radar-border text-[11px] text-radar-text-secondary space-y-2">
+              <p className="font-medium text-radar-text-primary">
+                Tap the button below to test. If you don't see a
+                notification, check these settings:
+              </p>
+              <button
+                onClick={handleTest}
+                className="px-3 py-1.5 bg-radar-accent/15 border border-radar-accent/25 text-radar-accent rounded-lg text-[11px] font-medium hover:bg-radar-accent/25 transition-colors"
+              >
+                Send test notification
+              </button>
+              <p>
+                <span className="text-radar-text-primary">Mac:</span>{" "}
+                System Settings → Notifications → find your browser → make
+                sure notifications are allowed. Also check that Focus / Do
+                Not Disturb is off.
+              </p>
+              <p>
+                <span className="text-radar-text-primary">Windows:</span>{" "}
+                Settings → System → Notifications → make sure your browser
+                is enabled. Check that Focus Assist is off.
+              </p>
+              <p>
+                <span className="text-radar-text-primary">Browser:</span>{" "}
+                Click the lock icon next to the URL in the address bar →
+                Notifications should say "Allow".
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </RadarCard>
   );
 }
@@ -118,7 +167,6 @@ function BrowserNotificationCard() {
 // ─── Sound Alerts ───────────────────────────────────────────────────────────
 
 function SoundAlertCard() {
-  // Simple toggle stored in localStorage directly
   const [enabled, setEnabled] = useState(() => {
     return localStorage.getItem("radar-sound-alerts") === "true";
   });
@@ -145,7 +193,7 @@ function SoundAlertCard() {
             Sound alerts
           </h3>
           <p className="text-[11px] text-radar-text-secondary mt-0.5">
-            Play a notification sound when high-priority signals land.
+            Play a notification sound when signals are detected.
           </p>
         </div>
 
@@ -166,392 +214,75 @@ function SoundAlertCard() {
   );
 }
 
-// ─── Discord (advanced) ─────────────────────────────────────────────────────
+// ─── Coming Soon — Email & Telegram ─────────────────────────────────────────
 
-function DiscordCard() {
-  const discordWebhookUrl = useRadarStore((s) => s.discordWebhookUrl);
-  const setDiscordWebhookUrl = useRadarStore((s) => s.setDiscordWebhookUrl);
-  const [expanded, setExpanded] = useState(!!discordWebhookUrl);
-  const [webhookInput, setWebhookInput] = useState(discordWebhookUrl);
-  const [testStatus, setTestStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
-  const [showGuide, setShowGuide] = useState(false);
-
-  const handleSave = () => {
-    setDiscordWebhookUrl(webhookInput.trim());
-  };
-
-  const handleTest = async () => {
-    if (!discordWebhookUrl) return;
-    setTestStatus("sending");
-
-    const testSignal: Signal = {
-      id: "test",
-      type: "reward",
-      severity: "medium",
-      title: "Test alert from Reward Radar",
-      description:
-        "If you see this, your Discord webhook is configured correctly!",
-      contractAddress: "0x0000000000000000000000000000000000000000",
-      timestamp: new Date(),
-      eventIds: [],
-      meta: {},
-    };
-
-    const success = await sendDiscordAlert(discordWebhookUrl, testSignal);
-    setTestStatus(success ? "success" : "error");
-    setTimeout(() => setTestStatus("idle"), 3000);
-  };
-
+function ComingSoonSection() {
   return (
-    <RadarCard>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-3 w-full text-left"
-      >
-        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
-          <MessageSquare size={20} className="text-indigo-400" />
-        </div>
+    <div>
+      <div className="flex items-center gap-2 mb-3 mt-6">
+        <Rocket size={14} className="text-radar-text-tertiary" />
+        <h3 className="text-sm font-semibold text-radar-text-primary">
+          Coming soon
+        </h3>
+      </div>
+      <p className="text-[11px] text-radar-text-secondary mb-4 leading-relaxed">
+        Get alerts even when you're away from the dashboard. We'll send you
+        just enough to know something big happened — then come back here to
+        see the full picture and decide your next move.
+      </p>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-radar-text-primary">
-              Discord webhook
-            </h3>
-            {discordWebhookUrl && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 font-medium">
-                Connected
-              </span>
-            )}
-          </div>
-          <p className="text-[11px] text-radar-text-secondary mt-0.5">
-            Send signal alerts to a Discord channel. Requires server admin access.
-          </p>
-        </div>
-
-        {expanded ? (
-          <ChevronUp size={14} className="text-radar-text-tertiary flex-shrink-0" />
-        ) : (
-          <ChevronDown size={14} className="text-radar-text-tertiary flex-shrink-0" />
-        )}
-      </button>
-
-      {expanded && (
-        <div className="mt-4 space-y-3">
-          {/* Setup guide toggle */}
-          <button
-            onClick={() => setShowGuide(!showGuide)}
-            className="text-[11px] text-radar-accent hover:underline"
-          >
-            {showGuide ? "Hide setup guide" : "How do I get a webhook URL?"}
-          </button>
-
-          {showGuide && (
-            <div className="p-3 rounded-lg bg-radar-bg border border-radar-border text-[11px] text-radar-text-secondary space-y-1.5">
-              <p>1. Open Discord on your computer</p>
-              <p>2. Go to the server where you want alerts</p>
-              <p>
-                3. Right-click a channel → <span className="text-radar-text-primary">Edit Channel</span> → <span className="text-radar-text-primary">Integrations</span> → <span className="text-radar-text-primary">Webhooks</span>
-              </p>
-              <p>
-                4. Click <span className="text-radar-text-primary">New Webhook</span>, name it "Reward Radar"
-              </p>
-              <p>5. Click <span className="text-radar-text-primary">Copy Webhook URL</span></p>
-              <p>6. Paste it below</p>
-              <p className="text-radar-text-tertiary mt-2">
-                Note: you need "Manage Webhooks" permission on the channel.
-              </p>
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={webhookInput}
-              onChange={(e) => setWebhookInput(e.target.value)}
-              placeholder="https://discord.com/api/webhooks/..."
-              className="flex-1 bg-radar-bg border border-radar-border rounded-lg px-3 py-2 text-xs font-mono text-radar-text-primary placeholder:text-radar-text-tertiary focus:outline-none focus:border-radar-accent/50 transition-colors"
-            />
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg text-xs font-medium hover:bg-indigo-500/20 transition-colors"
-            >
-              Save
-            </button>
-          </div>
-
-          {discordWebhookUrl && (
-            <button
-              onClick={handleTest}
-              disabled={testStatus === "sending"}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-radar-text-secondary hover:text-radar-text-primary transition-colors disabled:opacity-50"
-            >
-              {testStatus === "sending" ? (
-                "Sending..."
-              ) : testStatus === "success" ? (
-                <>
-                  <Check size={12} className="text-radar-accent" /> Sent!
-                </>
-              ) : testStatus === "error" ? (
-                <>
-                  <X size={12} className="text-radar-danger" /> Failed
-                </>
-              ) : (
-                <>
-                  <TestTube2 size={12} /> Send test message
-                </>
-              )}
-            </button>
-          )}
-        </div>
-      )}
-    </RadarCard>
-  );
-}
-
-// ─── Coming Soon Channels ───────────────────────────────────────────────────
-
-function ComingSoonChannels() {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      <ComingSoonCard
-        icon={<Mail size={18} className="text-radar-text-tertiary" />}
-        title="Email alerts"
-        description="Daily digest or instant email notifications"
-      />
-      <ComingSoonCard
-        icon={<Send size={18} className="text-radar-text-tertiary" />}
-        title="Telegram bot"
-        description="Real-time alerts in your Telegram DMs"
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <ComingSoonCard
+          icon={<Mail size={20} className="text-radar-blue" />}
+          iconBg="bg-radar-blue/10"
+          title="Email alerts"
+          description="Get notified when high-priority signals are detected. No spam — only the big moves."
+          example="🔥 Big move in HEFE Moat — open your dashboard"
+        />
+        <ComingSoonCard
+          icon={<Send size={20} className="text-radar-accent" />}
+          iconBg="bg-radar-accent/10"
+          title="Telegram bot"
+          description="Real-time alerts straight to your Telegram. The fastest way to catch opportunities."
+          example="💰 Reward spike across 2 Moats — check Reward Radar"
+        />
+      </div>
     </div>
   );
 }
 
 function ComingSoonCard({
   icon,
+  iconBg,
   title,
   description,
+  example,
 }: {
   icon: React.ReactNode;
+  iconBg: string;
   title: string;
   description: string;
+  example: string;
 }) {
   return (
-    <RadarCard className="opacity-60">
-      <div className="flex flex-col items-center text-center py-2">
-        <div className="w-10 h-10 rounded-xl bg-radar-border/30 flex items-center justify-center mb-2">
+    <RadarCard>
+      <div className="flex flex-col items-center text-center py-3">
+        <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center mb-3`}>
           {icon}
         </div>
-        <h3 className="text-xs font-medium text-radar-text-primary">
+        <h3 className="text-sm font-medium text-radar-text-primary">
           {title}
         </h3>
-        <p className="text-[10px] text-radar-text-tertiary mt-0.5">
+        <p className="text-[10px] text-radar-text-secondary mt-1 leading-relaxed">
           {description}
         </p>
-        <span className="text-[9px] px-2 py-0.5 rounded-full bg-radar-border/50 text-radar-text-tertiary mt-2 font-medium">
+        <p className="text-[10px] text-radar-text-tertiary mt-2 italic">
+          "{example}"
+        </p>
+        <span className="text-[9px] px-2.5 py-0.5 rounded-full bg-radar-accent/10 text-radar-accent mt-3 font-medium">
           Coming soon
         </span>
       </div>
     </RadarCard>
-  );
-}
-
-// ─── Alert Rules ────────────────────────────────────────────────────────────
-
-function AlertRulesCard() {
-  const alertRules = useRadarStore((s) => s.alertRules);
-  const addAlertRule = useRadarStore((s) => s.addAlertRule);
-  const removeAlertRule = useRadarStore((s) => s.removeAlertRule);
-  const toggleAlertRule = useRadarStore((s) => s.toggleAlertRule);
-  const discordWebhookUrl = useRadarStore((s) => s.discordWebhookUrl);
-  const [showAddRule, setShowAddRule] = useState(false);
-
-  return (
-    <RadarCard>
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-sm font-semibold text-radar-text-primary">
-            Alert rules
-          </h2>
-          <p className="text-[10px] text-radar-text-tertiary mt-0.5">
-            Customize which signals trigger Discord alerts
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAddRule(!showAddRule)}
-          className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-radar-accent hover:bg-radar-accent/10 rounded-lg transition-colors"
-        >
-          <Plus size={12} />
-          Add rule
-        </button>
-      </div>
-
-      {showAddRule && (
-        <AddRuleForm
-          onAdd={(rule) => {
-            addAlertRule(rule);
-            setShowAddRule(false);
-          }}
-          onCancel={() => setShowAddRule(false)}
-        />
-      )}
-
-      {alertRules.length === 0 && !showAddRule ? (
-        <p className="text-xs text-radar-text-tertiary text-center py-6">
-          No alert rules yet. Browser notifications work automatically for
-          high/critical signals — rules only affect Discord alerts.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {alertRules.map((rule) => (
-            <div
-              key={rule.id}
-              className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                rule.enabled ? "bg-radar-bg/50" : "bg-radar-bg/30 opacity-60"
-              }`}
-            >
-              <button
-                onClick={() => toggleAlertRule(rule.id)}
-                className={`w-8 h-5 rounded-full transition-colors relative ${
-                  rule.enabled ? "bg-radar-accent" : "bg-radar-border-bright"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    rule.enabled ? "left-3.5" : "left-0.5"
-                  }`}
-                />
-              </button>
-
-              <div className="flex-1 min-w-0">
-                <span className="text-xs text-radar-text-primary block">
-                  {rule.signalType === "all"
-                    ? "All signals"
-                    : `${rule.signalType} signals`}
-                  {" · "}
-                  {rule.minSeverity}+ severity
-                </span>
-                {rule.contractAddress && (
-                  <span className="text-[10px] font-mono text-radar-text-tertiary">
-                    {rule.contractAddress.slice(0, 10)}...
-                  </span>
-                )}
-              </div>
-
-              <button
-                onClick={() => removeAlertRule(rule.id)}
-                className="p-1.5 text-radar-text-tertiary hover:text-radar-danger transition-colors"
-              >
-                <Trash2 size={12} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </RadarCard>
-  );
-}
-
-// ─── Add Rule Form ──────────────────────────────────────────────────────────
-
-function AddRuleForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (rule: {
-    enabled: boolean;
-    signalType: SignalType | "all";
-    minSeverity: SignalSeverity;
-    contractAddress?: string;
-    webhookUrl: string;
-  }) => void;
-  onCancel: () => void;
-}) {
-  const discordWebhookUrl = useRadarStore((s) => s.discordWebhookUrl);
-  const [signalType, setSignalType] = useState<SignalType | "all">("all");
-  const [minSeverity, setMinSeverity] = useState<SignalSeverity>("medium");
-  const [contractAddress, setContractAddress] = useState("");
-
-  const handleSubmit = () => {
-    onAdd({
-      enabled: true,
-      signalType,
-      minSeverity,
-      contractAddress: contractAddress.trim() || undefined,
-      webhookUrl: discordWebhookUrl,
-    });
-  };
-
-  return (
-    <div className="p-3 mb-3 rounded-lg bg-radar-bg border border-radar-border space-y-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-[10px] text-radar-text-tertiary uppercase tracking-wider block mb-1">
-            Signal type
-          </label>
-          <select
-            value={signalType}
-            onChange={(e) =>
-              setSignalType(e.target.value as SignalType | "all")
-            }
-            className="w-full bg-radar-surface border border-radar-border rounded-lg px-3 py-1.5 text-xs text-radar-text-primary focus:outline-none focus:border-radar-accent/50"
-          >
-            <option value="all">All signals</option>
-            <option value="reward">Rewards</option>
-            <option value="burn">Burns</option>
-            <option value="streak">Streaks</option>
-            <option value="unstake">Unstakes</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="text-[10px] text-radar-text-tertiary uppercase tracking-wider block mb-1">
-            Min severity
-          </label>
-          <select
-            value={minSeverity}
-            onChange={(e) =>
-              setMinSeverity(e.target.value as SignalSeverity)
-            }
-            className="w-full bg-radar-surface border border-radar-border rounded-lg px-3 py-1.5 text-xs text-radar-text-primary focus:outline-none focus:border-radar-accent/50"
-          >
-            <option value="low">Low+</option>
-            <option value="medium">Medium+</option>
-            <option value="high">High+</option>
-            <option value="critical">Critical only</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label className="text-[10px] text-radar-text-tertiary uppercase tracking-wider block mb-1">
-          Contract address (optional)
-        </label>
-        <input
-          type="text"
-          value={contractAddress}
-          onChange={(e) => setContractAddress(e.target.value)}
-          placeholder="0x... (leave empty for all Moats)"
-          className="w-full bg-radar-surface border border-radar-border rounded-lg px-3 py-1.5 text-xs font-mono text-radar-text-primary placeholder:text-radar-text-tertiary focus:outline-none focus:border-radar-accent/50"
-        />
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={onCancel}
-          className="px-3 py-1.5 text-xs text-radar-text-secondary hover:text-radar-text-primary transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSubmit}
-          className="px-4 py-1.5 bg-radar-accent/10 border border-radar-accent/20 text-radar-accent rounded-lg text-xs font-medium hover:bg-radar-accent/20 transition-colors"
-        >
-          Add rule
-        </button>
-      </div>
-    </div>
   );
 }

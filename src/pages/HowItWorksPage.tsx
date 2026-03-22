@@ -3,12 +3,9 @@ import { Link } from "react-router-dom";
 import {
   Radio,
   Zap,
-  Bell,
-  Share2,
   BarChart3,
   Trophy,
   ArrowRight,
-  ExternalLink,
 } from "lucide-react";
 
 export function HowItWorksPage() {
@@ -131,10 +128,12 @@ export function HowItWorksPage() {
           from rewards? Burns? Rank volatility? This helps you decide where
           to focus.
         </Step>
-        <Step number={3} title="Turn on alerts">
+        <Step number={3} title="Enable alerts">
           Go to the Alerts page and enable browser notifications with one
-          click. You'll get a desktop notification whenever a high-priority
-          signal is detected — even if the tab is in the background.
+          click. While you have the dashboard open, you'll get a desktop
+          notification when something big happens. Email and Telegram
+          alerts are coming soon — so you'll get notified even when you're
+          away.
         </Step>
         <Step number={4} title="Share with your community">
           Use the Share page to generate a link for any specific Moat. Your
@@ -154,10 +153,14 @@ export function HowItWorksPage() {
           engagement with the ecosystem. Some examples:
         </p>
         <div className="grid grid-cols-2 gap-2 my-4">
-          <BadgeExplainer emoji="🐦" name="Early Bird" how="See a signal within 5 minutes of it happening" />
-          <BadgeExplainer emoji="🐳" name="Whale Watcher" how="Spot a top-ranked wallet making a move" />
-          <BadgeExplainer emoji="🎯" name="Signal Hunter" how="Collect 10+ signals" />
-          <BadgeExplainer emoji="🔔" name="Alert Pro" how="Set up a Discord alert rule" />
+          <BadgeExplainer image="/badges/earlybird.png" name="Early Bird" how="See a signal within 5 minutes of it happening" />
+          <BadgeExplainer image="/badges/whalewatcher.png" name="Whale Watcher" how="Spot a top-ranked wallet making a move" />
+          <BadgeExplainer image="/badges/criticaleye.png" name="Critical Eye" how="Detect a critical severity signal" />
+          <BadgeExplainer image="/badges/signalhunter.png" name="Signal Hunter" how="Collect 10+ signals" />
+          <BadgeExplainer image="/badges/moatexplorer.png" name="Moat Explorer" how="See signals from 3+ different Moats" />
+          <BadgeExplainer image="/badges/streakspotter.png" name="Streak Spotter" how="Catch a hot streak signal" />
+          <BadgeExplainer image="/badges/burntoken.png" name="Burn Notice" how="Witness a burn or early exit signal" />
+          <BadgeExplainer image="/badges/alertpro.png" name="Alert Pro" how="Enable browser notifications" />
         </div>
         <p>
           Badges are saved permanently — you won't lose them even if you
@@ -308,17 +311,17 @@ function ScoreExample({
 }
 
 function BadgeExplainer({
-  emoji,
+  image,
   name,
   how,
 }: {
-  emoji: string;
+  image: string;
   name: string;
   how: string;
 }) {
   return (
     <div className="flex items-start gap-2 p-2 rounded-lg bg-radar-surface/50">
-      <span className="text-base">{emoji}</span>
+      <img src={image} alt={name} className="w-10 h-10 object-contain flex-shrink-0" />
       <div>
         <span className="text-[11px] font-medium text-radar-text-primary block">
           {name}

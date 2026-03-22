@@ -1,5 +1,5 @@
-import { useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useMemo } from "react";
+import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { useEvents, useMoatPoints, useSignalProcessor } from "@/hooks";
 import { useRadarStore } from "@/stores/radarStore";
 import { SignalCard } from "@/components/feed/SignalCard";
@@ -13,8 +13,7 @@ import {
 import { calculateOpportunityScore } from "@/engine";
 import { truncateAddress, getMoatInfo, getKnownMoatAddresses } from "@/utils";
 import { Radio, ExternalLink, Copy, Check, ArrowLeft } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+
 
 export function SharePage() {
   const { contractAddress } = useParams<{ contractAddress?: string }>();
@@ -34,10 +33,10 @@ export function SharePage() {
 function SharedMoatView({
   contractAddress,
   isEmbed,
-}: {
+}: Readonly<{
   contractAddress: string;
   isEmbed: boolean;
-}) {
+}>) {
   // Activate signal processing
   useSignalProcessor();
 
@@ -165,7 +164,7 @@ function SharedMoatView({
             Powered by Reward Radar
           </span>
           <a
-            href={`${window.location.origin}/share/${contractAddress}`}
+            href={`${globalThis.location.origin}/share/${contractAddress}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-[10px] text-radar-accent hover:underline"
@@ -191,7 +190,7 @@ function ShareLinkGenerator() {
   }));
 
   const shareUrl = address
-    ? `${window.location.origin}/share/${address}`
+    ? `${globalThis.location.origin}/share/${address}`
     : "";
   const embedCode = address
     ? `<iframe src="${shareUrl}?embed=true" width="400" height="600" frameborder="0" style="border-radius:12px;border:1px solid #2A2B36"></iframe>`

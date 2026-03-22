@@ -17,13 +17,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <StakerMarquee />
       <StatusBar />
       <div className="gold-line" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-28 lg:pb-6 flex-1 w-full">
         <div className="flex flex-col lg:flex-row gap-6">
           <Sidebar />
           <main className="flex-1 min-w-0">{children}</main>
         </div>
       </div>
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 }
@@ -43,7 +44,7 @@ function Hero() {
         <img
           src="/title.png"
           alt="Reward Radar"
-          className="h-10 sm:h-[2em] w-auto drop-shadow-lg"
+          className="h-10 sm:h-14 w-auto drop-shadow-lg"
         />
         <p className="text-sm sm:text-base text-white/70 mt-2 drop-shadow">
           Real-time opportunity scanner for the{" "}
@@ -65,7 +66,7 @@ function StatusBar() {
       (s.severity === "critical" || s.severity === "high") &&
       now - s.timestamp.getTime() < 86_400_000
   ).length;
- 
+
   return (
     <div className="bg-radar-surface/40 border-b border-radar-border/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -87,47 +88,96 @@ function StatusBar() {
   );
 }
 
-// ─── Sidebar ────────────────────────────────────────────────────────────────
+// ─── Sidebar (desktop only) ─────────────────────────────────────────────────
 
 function Sidebar() {
   return (
-    <aside className="lg:w-56 flex-shrink-0">
-      <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-2 lg:pb-0 scrollbar-none">
+    <aside className="hidden lg:block lg:w-56 flex-shrink-0">
+      <nav className="flex flex-col gap-1">
         <SidebarLink to="/" icon={<Radio size={16} />} label="Feed" />
         <SidebarLink to="/compare" icon={<BarChart3 size={16} />} label="Compare" />
         <SidebarLink to="/alerts" icon={<Bell size={16} />} label="Alerts" />
         <SidebarLink to="/share" icon={<Share2 size={16} />} label="Share" />
-        <div className="hidden lg:block border-t border-radar-border/50 my-1.5" />
-        <SidebarLink to="/how-it-works" icon={<HelpCircle size={16} />} label="Guide" mobileLabel="Guide" />
+        <div className="border-t border-radar-border/50 my-1.5" />
+        <SidebarLink to="/how-it-works" icon={<HelpCircle size={16} />} label="Guide" />
       </nav>
- 
-      <div className="mt-6 hidden lg:block">
+
+      <div className="mt-6">
         <WalletInputFull />
       </div>
- 
-      <div className="mt-4 hidden lg:block">
+
+      <div className="mt-4">
         <BadgeShowcase />
       </div>
     </aside>
   );
 }
- 
-function SidebarLink({
+
+// ─── Bottom Nav (mobile only) ───────────────────────────────────────────────
+
+function MobileBottomNav() {
+  return (
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-radar-surface/95 backdrop-blur-xl border-t border-radar-border">
+      <div className="flex items-center justify-around h-14 px-2">
+        <BottomNavLink to="/" icon={<Radio size={20} />} label="Feed" />
+        <BottomNavLink to="/compare" icon={<BarChart3 size={20} />} label="Compare" />
+        <BottomNavLink to="/alerts" icon={<Bell size={20} />} label="Alerts" />
+        <BottomNavLink to="/share" icon={<Share2 size={20} />} label="Share" />
+        <BottomNavLink to="/how-it-works" icon={<HelpCircle size={20} />} label="Guide" />
+      </div>
+      <div className="gold-line mx-4" />
+      <div className="text-center pb-1.5 pt-1">
+        <p className="text-[8px] text-radar-text-tertiary pt-1 pb-1">
+          {new Date().getFullYear()} Reward Radar {" · "} Powered by{" "}
+          <a href="https://moats.app" target="_blank" rel="noopener noreferrer" className="hover:text-radar-text-tertiary text-radar-accent">The Moats</a>
+          {" · "} Created by{" "}
+          <a href="https://x.com/vicdelarge" target="_blank" rel="noopener noreferrer" className="hover:text-radar-text-tertiary text-radar-accent">@vicdelarge</a>
+        </p>
+      </div>
+    </nav>
+  );
+}
+
+function BottomNavLink({
   to,
   icon,
   label,
-  mobileLabel,
 }: {
   to: string;
   icon: ReactNode;
   label: string;
-  mobileLabel?: string;
 }) {
   return (
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+        `flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
+          isActive
+            ? "text-radar-accent"
+            : "text-radar-text-tertiary"
+        }`
+      }
+    >
+      {icon}
+      <span className="text-[9px] font-medium">{label}</span>
+    </NavLink>
+  );
+}
+
+function SidebarLink({
+  to,
+  icon,
+  label,
+}: {
+  to: string;
+  icon: ReactNode;
+  label: string;
+}) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
           isActive
             ? "bg-radar-accent/10 text-radar-accent border border-radar-accent/20"
             : "text-radar-text-secondary hover:text-radar-text-primary hover:bg-radar-surface/50"
@@ -135,14 +185,7 @@ function SidebarLink({
       }
     >
       {icon}
-      {mobileLabel ? (
-        <>
-          <span className="lg:hidden">{mobileLabel}</span>
-          <span className="hidden lg:inline">{label}</span>
-        </>
-      ) : (
-        label
-      )}
+      {label}
     </NavLink>
   );
 }
@@ -221,7 +264,7 @@ function WalletInputFull() {
 
 function Footer() {
   return (
-    <footer className="border-t border-radar-border/50 mt-auto">
+    <footer className="hidden lg:block border-t border-radar-border/50 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 text-center">
         <p className="text-xs text-radar-text-tertiary">
           {new Date().getFullYear()} &middot; Reward Radar &middot; Powered by{" "}
@@ -240,7 +283,7 @@ function Footer() {
             href="https://x.com/vicdelarge"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-radar-accent hover:underline"
+            className="text-radar-accent hover:text-radar-text-primary transition-colors"
           >
             @vicdelarge
           </a>

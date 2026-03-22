@@ -1,5 +1,5 @@
 import type { Signal, SignalType } from "@/types";
-import { getMoatInfo } from "@/utils";
+import { getMoatInfo } from "./contracts";
 
 // ─── Permission ─────────────────────────────────────────────────────────────
 
@@ -31,34 +31,36 @@ export function sendBrowserNotification(signal: Signal): void {
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
 
-  const icon = SIGNAL_ICONS[signal.type] ?? "\u{1F4E1}"; // 📡
+  const icon = SIGNAL_ICONS[signal.type] ?? "\u{1F4E1}";
   const moat = signal.contractAddress
     ? getMoatInfo(signal.contractAddress).name
     : "";
 
-  const notification = new Notification(
-    `${icon} ${signal.title}`,
-    {
-      body: `${signal.description}${moat ? `\n${moat}` : ""}`,
-      tag: signal.id, // Prevents duplicate notifications for same signal
-      silent: false,
-    }
-  );
+  try {
+    const n = new Notification(
+      `${icon} ${signal.title}`,
+      {
+        body: `${signal.description}${moat ? `\n${moat}` : ""}`,
+        tag: `radar-${Date.now()}`,
+        requireInteraction: false,
+      }
+    );
 
-  // Auto-close after 8 seconds
-  setTimeout(() => notification.close(), 8000);
+    setTimeout(() => n.close(), 8000);
 
-  // Focus window on click
-  notification.onclick = () => {
-    window.focus();
-    notification.close();
-  };
+    n.onclick = () => {
+      window.focus();
+      n.close();
+    };
+  } catch {
+    // Silently fail — OS or browser blocked it
+  }
 }
 
 /**
  * Checks if a signal should trigger a browser notification.
- * Only fires for high and critical severity to avoid notification spam.
+ * Fires for medium, high, and critical severity.
  */
 export function shouldNotify(signal: Signal): boolean {
-  return signal.severity === "high" || signal.severity === "critical";
+  return signal.severity === "medium" || signal.severity === "high" || signal.severity === "critical";
 }

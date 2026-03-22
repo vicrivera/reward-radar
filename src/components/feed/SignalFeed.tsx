@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useFilteredSignals } from "@/stores/radarStore";
-import { useSignalProcessor } from "@/hooks";
 import { SignalCard } from "./SignalCard";
 import { FeedFilters } from "./FeedFilters";
 import {
@@ -8,7 +7,7 @@ import {
   SignalCardSkeleton,
   PulseDot,
 } from "@/components/shared/UIComponents";
-import { useEvents, useMoatPoints } from "@/hooks";
+import { useSignalProcessor, useEvents, useMoatPoints } from "@/hooks";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_SIZE = 5;

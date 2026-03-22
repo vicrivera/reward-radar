@@ -6,7 +6,7 @@ import { timeAgo } from "@/utils";
 import { Award } from "lucide-react";
 import type { Badge, EarnedBadge } from "@/engine";
 
-const TIER_STYLES: Record<string, { ring: string; bg: string; text: string }> = {
+const TIER_STYLES: Record<Badge["tier"], { ring: string; bg: string; text: string }> = {
   gold: {
     ring: "ring-radar-warning/50",
     bg: "bg-radar-warning/10",
@@ -26,14 +26,16 @@ const TIER_STYLES: Record<string, { ring: string; bg: string; text: string }> = 
 
 export function BadgeShowcase() {
   const signals = useRadarStore((s) => s.signals);
-  const alertRules = useRadarStore((s) => s.alertRules);
   const earnedBadgeIds = useRadarStore((s) => s.earnedBadgeIds);
   const earnBadge = useRadarStore((s) => s.earnBadge);
 
+  const notificationsEnabled =
+    "Notification" in globalThis && Notification.permission === "granted";
+
   // Check for newly earned badges and persist them
   const freshlyEarned = useMemo(
-    () => evaluateBadges(signals, alertRules),
-    [signals, alertRules]
+    () => evaluateBadges(signals, notificationsEnabled),
+    [signals, notificationsEnabled]
   );
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export function BadgeShowcase() {
 
       {/* Earned badges */}
       {earned.length > 0 && (
-        <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="grid grid-cols-2 gap-3 mb-3">
           {earned.map((badge) => (
             <EarnedBadgeItem key={badge.id} badge={badge} />
           ))}
@@ -79,7 +81,7 @@ export function BadgeShowcase() {
 
       {/* Locked badges */}
       {locked.length > 0 && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {locked.map((badge) => (
             <LockedBadgeItem key={badge.id} badge={badge} />
           ))}
@@ -90,7 +92,7 @@ export function BadgeShowcase() {
 }
 
 function EarnedBadgeItem({ badge }: { badge: EarnedBadge }) {
-  const style = TIER_STYLES[badge.tier] ?? TIER_STYLES.bronze;
+  const style = TIER_STYLES[badge.tier];
 
   return (
     <div
@@ -98,11 +100,15 @@ function EarnedBadgeItem({ badge }: { badge: EarnedBadge }) {
       title={`${badge.name}: ${badge.description}`}
     >
       <div
-        className={`w-11 h-11 rounded-xl ${style.bg} ring-1 ${style.ring} flex items-center justify-center text-lg transition-transform group-hover:scale-110`}
+        className={`w-16 h-16 rounded-xl ${style.bg} ring-1 ${style.ring} flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110`}
       >
-        {badge.icon}
+        <img
+          src={badge.imageUrl}
+          alt={badge.name}
+          className="w-14 h-14 object-contain"
+        />
       </div>
-      <span className={`text-[9px] font-medium mt-1 text-center leading-tight ${style.text}`}>
+      <span className={`text-[10px] font-medium mt-1.5 text-center leading-tight ${style.text}`}>
         {badge.name}
       </span>
 
@@ -128,10 +134,14 @@ function LockedBadgeItem({ badge }: { badge: Badge }) {
       className="group relative flex flex-col items-center opacity-30"
       title={`${badge.name}: ${badge.description}`}
     >
-      <div className="w-11 h-11 rounded-xl bg-radar-border/30 flex items-center justify-center text-lg grayscale">
-        {badge.icon}
+      <div className="w-16 h-16 rounded-xl bg-radar-border/30 flex items-center justify-center overflow-hidden">
+        <img
+          src={badge.imageUrl}
+          alt={badge.name}
+          className="w-14 h-14 object-contain grayscale brightness-50"
+        />
       </div>
-      <span className="text-[9px] font-medium mt-1 text-center leading-tight text-radar-text-tertiary">
+      <span className="text-[10px] font-medium mt-1.5 text-center leading-tight text-radar-text-tertiary">
         {badge.name}
       </span>
 

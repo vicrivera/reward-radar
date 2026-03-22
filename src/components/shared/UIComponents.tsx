@@ -24,7 +24,7 @@ const SIGNAL_ICONS: Record<SignalType, string> = {
   unstake: "📤",
 };
 
-export function SignalBadge({ type }: { type: SignalType }) {
+export function SignalBadge({ type }: Readonly<{ type: SignalType }>) {
   return (
     <span className={`radar-badge ${SIGNAL_STYLES[type]}`}>
       <span className="text-sm leading-none">{SIGNAL_ICONS[type]}</span>
@@ -42,7 +42,7 @@ const SEVERITY_COLORS: Record<SignalSeverity, string> = {
   critical: "bg-radar-danger",
 };
 
-export function SeverityDot({ severity }: { severity: SignalSeverity }) {
+export function SeverityDot({ severity }: Readonly<{ severity: SignalSeverity }>) {
   return (
     <span className="relative flex h-2.5 w-2.5">
       {(severity === "high" || severity === "critical") && (
@@ -63,11 +63,11 @@ export function RadarCard({
   children,
   className = "",
   glow = false,
-}: {
+}: Readonly<{
   children: ReactNode;
   className?: string;
   glow?: boolean;
-}) {
+}>) {
   return (
     <div
       className={`radar-card p-4 ${glow ? "radar-glow" : ""} ${className}`}
@@ -79,7 +79,7 @@ export function RadarCard({
 
 // ─── Skeleton Loader ────────────────────────────────────────────────────────
 
-export function Skeleton({ className = "" }: { className?: string }) {
+export function Skeleton({ className = "" }: Readonly<{ className?: string }>) {
   return (
     <div
       className={`animate-pulse bg-radar-border rounded-lg ${className}`}
@@ -107,11 +107,11 @@ export function EmptyState({
   icon = "📡",
   title,
   description,
-}: {
+}: Readonly<{
   icon?: string;
   title: string;
   description: string;
-}) {
+}>) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <span className="text-4xl mb-4">{icon}</span>
@@ -127,7 +127,7 @@ export function EmptyState({
 
 // ─── Pulse Dot (for live indicator) ─────────────────────────────────────────
 
-export function PulseDot({ className = "" }: { className?: string }) {
+export function PulseDot({ className = "" }: Readonly<{ className?: string }>) {
   return (
     <span className={`relative flex h-2 w-2 ${className}`}>
       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-radar-accent opacity-75" />
@@ -141,10 +141,10 @@ export function PulseDot({ className = "" }: { className?: string }) {
 export function ScoreRing({
   score,
   size = 48,
-}: {
+}: Readonly<{
   score: number;
   size?: number;
-}) {
+}>) {
   const radius = (size - 6) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;

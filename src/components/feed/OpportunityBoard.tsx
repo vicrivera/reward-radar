@@ -178,7 +178,7 @@ function OpportunityRow({
 
       {/* Expanded detail */}
       {expanded && (
-        <MoatDetail opportunity={opportunity} moatName={moatInfo.name} />
+        <MoatDetail opportunity={opportunity} />
       )}
     </div>
   );
@@ -188,10 +188,8 @@ function OpportunityRow({
 
 function MoatDetail({
   opportunity,
-  moatName,
 }: {
   opportunity: MoatOpportunity;
-  moatName: string;
 }) {
   return (
     <div className="px-3 pb-3 space-y-3 border-t border-radar-border/50">
@@ -281,32 +279,6 @@ function MiniSignalRow({ signal }: { signal: Signal }) {
       </span>
       <span className="text-[10px] text-radar-text-tertiary font-mono flex-shrink-0">
         {timeAgo(signal.timestamp)}
-      </span>
-    </div>
-  );
-}
-
-// ─── Mini Bar ───────────────────────────────────────────────────────────────
-
-function MiniBar({
-  value,
-  color,
-  label,
-}: {
-  value: number;
-  color: string;
-  label: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <div className="w-4 h-8 bg-radar-border rounded-sm overflow-hidden flex flex-col justify-end">
-        <div
-          className={`w-full ${color} rounded-sm transition-all duration-500`}
-          style={{ height: `${value}%` }}
-        />
-      </div>
-      <span className="text-[8px] text-radar-text-tertiary font-mono">
-        {label}
       </span>
     </div>
   );

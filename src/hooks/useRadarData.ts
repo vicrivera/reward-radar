@@ -7,9 +7,8 @@ import {
   detectUnstakeSignals,
   detectStreakSignals,
   createRankSnapshot,
-  sendDiscordAlert,
 } from "@/engine";
-import { useRadarStore, getMatchingRules } from "@/stores/radarStore";
+import { useRadarStore } from "@/stores/radarStore";
 import { sendBrowserNotification, shouldNotify } from "@/utils";
 import type { MoatEvent, RawMoatPoints, Signal, RankSnapshot } from "@/types";
 
@@ -52,29 +51,19 @@ export function useSignalProcessor() {
   const appendSignals = useRadarStore((s) => s.appendSignals);
   const lastSeenEventId = useRadarStore((s) => s.lastSeenEventId);
   const setLastSeenEventId = useRadarStore((s) => s.setLastSeenEventId);
-  const discordWebhookUrl = useRadarStore((s) => s.discordWebhookUrl);
-  const alertRules = useRadarStore((s) => s.alertRules);
 
   const processedRef = useRef(new Set<string>());
+  const isFirstLoadRef = useRef(true);
 
   const fireAlerts = useCallback(
-    async (signals: Signal[]) => {
+    (signals: Signal[]) => {
       for (const signal of signals) {
-        // Browser notifications for high/critical — always, no config needed
         if (shouldNotify(signal)) {
           sendBrowserNotification(signal);
         }
-
-        // Discord webhook alerts — only if configured with matching rules
-        if (discordWebhookUrl && alertRules.length > 0) {
-          const matchingRules = getMatchingRules(signal, alertRules);
-          if (matchingRules.length > 0) {
-            await sendDiscordAlert(discordWebhookUrl, signal);
-          }
-        }
       }
     },
-    [discordWebhookUrl, alertRules]
+    []
   );
 
   // Process events into signals
@@ -104,7 +93,11 @@ export function useSignalProcessor() {
 
     if (allNewSignals.length > 0) {
       appendSignals(allNewSignals);
-      fireAlerts(allNewSignals);
+
+      // Only fire notifications on subsequent polls, not the initial batch
+      if (!isFirstLoadRef.current) {
+        fireAlerts(allNewSignals);
+      }
     }
 
     // Mark as processed
@@ -115,6 +108,8 @@ export function useSignalProcessor() {
     if (events[0]) {
       setLastSeenEventId(events[0].id);
     }
+
+    isFirstLoadRef.current = false;
   }, [events, points, lastSeenEventId, appendSignals, setLastSeenEventId, fireAlerts]);
 
   // Process points for streak detection

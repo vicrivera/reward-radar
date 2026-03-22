@@ -1,4 +1,4 @@
-import type { Signal, AlertRule } from "@/types";
+import type { Signal } from "@/types";
 
 // ─── Badge Definitions ──────────────────────────────────────────────────────
 
@@ -7,6 +7,7 @@ export interface Badge {
   name: string;
   description: string;
   icon: string;
+  imageUrl: string;
   tier: "bronze" | "silver" | "gold";
 }
 
@@ -19,56 +20,64 @@ const BADGE_DEFS: Badge[] = [
     id: "early-bird",
     name: "Early Bird",
     description: "Caught a signal within 5 minutes of it happening",
-    icon: "\u{1F426}", // 🐦
+    icon: "\u{1F426}",
+    imageUrl: "/badges/earlybird.png",
     tier: "gold",
   },
   {
     id: "whale-watcher",
     name: "Whale Watcher",
     description: "Spotted a top-ranked wallet move",
-    icon: "\u{1F433}", // 🐳
+    icon: "\u{1F433}",
+    imageUrl: "/badges/whalewatcher.png",
     tier: "gold",
   },
   {
     id: "burn-notice",
     name: "Burn Notice",
     description: "Witnessed a burn or early exit signal",
-    icon: "\u{1F525}", // 🔥
+    icon: "\u{1F525}",
+    imageUrl: "/badges/burntoken.png",
     tier: "bronze",
   },
   {
     id: "signal-hunter",
     name: "Signal Hunter",
     description: "Collected 10+ signals",
-    icon: "\u{1F3AF}", // 🎯
+    icon: "\u{1F3AF}",
+    imageUrl: "/badges/signalhunter.png",
     tier: "silver",
   },
   {
     id: "moat-explorer",
     name: "Moat Explorer",
     description: "Signals from 3+ different Moats",
-    icon: "\u{1F9ED}", // 🧭
+    icon: "\u{1F9ED}",
+    imageUrl: "/badges/moatexplorer.png",
     tier: "silver",
   },
   {
     id: "alert-pro",
     name: "Alert Pro",
-    description: "Configured a Discord alert rule",
-    icon: "\u{1F514}", // 🔔
+    description: "Enabled browser notifications",
+    icon: "\u{1F514}",
+    imageUrl: "/badges/alertpro.png",
     tier: "bronze",
   },
   {
     id: "critical-eye",
     name: "Critical Eye",
     description: "Detected a critical severity signal",
-    icon: "\u{1F441}", // 👁
+    icon: "\u{1F441}",
+    imageUrl: "/badges/criticaleye.png",
     tier: "gold",
   },
   {
     id: "streak-spotter",
     name: "Streak Spotter",
     description: "Caught a hot streak signal",
-    icon: "\u{26A1}", // ⚡
+    icon: "\u{26A1}",
+    imageUrl: "/badges/streakspotter.png",
     tier: "silver",
   },
 ];
@@ -82,7 +91,7 @@ const BADGE_DEFS: Badge[] = [
  */
 export function evaluateBadges(
   signals: Signal[],
-  alertRules: AlertRule[]
+  notificationsEnabled: boolean
 ): EarnedBadge[] {
   const earned: EarnedBadge[] = [];
   const now = Date.now();
@@ -120,8 +129,8 @@ export function evaluateBadges(
     earned.push(award("moat-explorer"));
   }
 
-  // Alert Pro — at least one alert rule configured
-  if (alertRules.length > 0) {
+  // Alert Pro — browser notifications enabled
+  if (notificationsEnabled) {
     earned.push(award("alert-pro"));
   }
 
