@@ -5,7 +5,6 @@ import type {
   FeedFilter,
   Signal,
   SignalSeverity,
-  SignalType,
   TimeRange,
   RankSnapshot,
 } from "@/types";

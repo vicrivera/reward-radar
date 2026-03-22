@@ -18,7 +18,7 @@ interface SignalCardProps {
   index: number;
 }
 
-export function SignalCard({ signal, index }: Readonly<SignalCardProps>) {
+export function SignalCard({ signal, index }: SignalCardProps) {
   const [expanded, setExpanded] = useState(false);
   const txUrl = getTxLink(signal);
 
@@ -90,11 +90,11 @@ function SignalDetail({
   signal: Signal;
   txUrl: string | null;
 }>) {
-  const meta = signal.meta as Record<string, unknown>;
-  const userAddress = (meta.user as string) ?? (meta.address as string);
-  const tokenAddress = meta.token as string | undefined;
-  const amount = meta.amount as string | undefined;
-  const fee = meta.fee as string | undefined;
+  const meta = signal.meta as Record<string, undefined>;
+  const userAddress = String(meta.user ?? meta.address ?? "");
+  const tokenAddress = typeof meta.token === "string" ? meta.token : undefined;
+  const amount = typeof meta.amount === "string" ? meta.amount : undefined;
+  const fee = typeof meta.fee === "string" ? meta.fee : undefined;
 
   return (
     <div className="px-4 pb-4 space-y-3 border-t border-radar-border/50">
@@ -148,7 +148,7 @@ function SignalDetail({
       {meta.rankDelta && (
         <DetailRow
           label="Rank change"
-          value={`#${meta.previousRank} → #${meta.currentRank} (+${meta.pointsDelta?.toLocaleString()} pts)`}
+          value={`#${String(meta.previousRank)} → #${String(meta.currentRank)} (+${Number(meta.pointsDelta ?? 0).toLocaleString()} pts)`}
         />
       )}
 
@@ -172,11 +172,11 @@ function DetailRow({
   label,
   value,
   href,
-}: Readonly<{
+}: {
   label: string;
   value: string;
   href?: string;
-}>) {
+}) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-[10px] text-radar-text-tertiary uppercase tracking-wider">
