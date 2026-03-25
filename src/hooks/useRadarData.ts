@@ -24,6 +24,7 @@ export function useEvents() {
     queryKey: ["moat-events"],
     queryFn: fetchEvents,
     refetchInterval: EVENT_POLL_INTERVAL,
+    refetchIntervalInBackground: true,
     staleTime: EVENT_POLL_INTERVAL / 2,
     refetchOnWindowFocus: true,
   });
@@ -36,6 +37,7 @@ export function useMoatPoints() {
     queryKey: ["moat-points"],
     queryFn: fetchAllMoatPoints,
     refetchInterval: POINTS_POLL_INTERVAL,
+    refetchIntervalInBackground: true,
     staleTime: POINTS_POLL_INTERVAL / 2,
     refetchOnWindowFocus: true,
   });
