@@ -71,7 +71,7 @@ export interface MoatPointsEntry {
 // ─── Signal Types ───────────────────────────────────────────────────────────
 // Output of the signal detection engine.
 
-export type SignalType = "reward" | "burn" | "streak" | "unstake";
+export type SignalType = "reward" | "burn" | "streak" | "unstake" | "lock";
 
 export type SignalSeverity = "low" | "medium" | "high" | "critical";
 

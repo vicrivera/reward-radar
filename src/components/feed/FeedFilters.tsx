@@ -4,6 +4,7 @@ import type { FeedFilter, TimeRange } from "@/types";
 const FILTER_OPTIONS: { value: FeedFilter; label: string; icon: string }[] = [
   { value: "all", label: "All", icon: "📡" },
   { value: "reward", label: "Rewards", icon: "💰" },
+  { value: "lock", label: "Locks", icon: "🔒" },
   { value: "burn", label: "Burns", icon: "🔥" },
   { value: "streak", label: "Streaks", icon: "🚀" },
   { value: "unstake", label: "Unstakes", icon: "📤" },

@@ -19,7 +19,7 @@ function makeSignalId(prefix: string, eventId?: string): string {
 // Calibrated against real Moats API data:
 // - USDC amounts are in 6 decimals (234271 = $0.23)
 // - WAVAX amounts are in 18 decimals (22235797971061259 = 0.022 AVAX)
-// - HEFE/FREAK are in 18 decimals with large raw numbers
+// - HEFE/CAMRY are in 18 decimals with large raw numbers
 // We convert to a human-readable value first, then apply token-class thresholds.
 
 const STABLECOIN_TOKENS = new Set([
@@ -259,6 +259,52 @@ export function detectUnstakeSignals(
   return signals;
 }
 
+// ─── Lock / Stake Detector ────────────────────────────────────────────────
+
+export function detectLockSignals(
+  events: MoatEvent[],
+  topWallets?: Set<string>
+): Signal[] {
+  const signals: Signal[] = [];
+
+  const lockEvents = events.filter(
+    (e) => e.eventType === "Locked" || e.eventType === "Staked"
+  );
+
+  for (const event of lockEvents) {
+    const amount = event.amount ?? "0";
+    const formattedAmount = formatTokenAmount(amount, 18, 2);
+    const userLabel = truncateAddress(event.user);
+    const moatName = getMoatInfo(event.contractAddress).name;
+    const isTopWallet = topWallets?.has(event.user.toLowerCase()) ?? false;
+    const isLock = event.eventType === "Locked";
+
+    const baseSeverity = stakeAmountSeverity(amount);
+    const severity: SignalSeverity = isTopWallet
+      ? bumpSeverity(baseSeverity)
+      : baseSeverity;
+
+    const action = isLock ? "locked" : "staked";
+    const title = isTopWallet
+      ? `Top wallet ${action} in ${moatName}`
+      : `${isLock ? "Lock" : "Stake"} in ${moatName}`;
+
+    signals.push({
+      id: makeSignalId("lock", event.id),
+      type: "lock",
+      severity,
+      title,
+      description: `${userLabel} ${action} ${formattedAmount} in ${moatName}${isTopWallet ? " (top ranked wallet)" : ""}. Growing commitment.`,
+      contractAddress: event.contractAddress,
+      timestamp: event.timestamp,
+      eventIds: [event.id],
+      meta: { amount, user: event.user, isTopWallet, action, txHash: event.txHash },
+    });
+  }
+
+  return signals;
+}
+
 // ─── Hot Streak Detector ───────────────────────────────────────────────────
 // Compares two rank snapshots. Cross-references recent events to identify
 // which Moat(s) the wallet interacted with.
@@ -349,6 +395,7 @@ export function calculateOpportunityScore(
   burnSignals: Signal[],
   streakSignals: Signal[],
   unstakeSignals: Signal[],
+  lockSignals: Signal[],
   contractAddress: string
 ): {
   score: number;
@@ -356,6 +403,7 @@ export function calculateOpportunityScore(
   burnRate: number;
   rankVolatility: number;
   entrySignals: number;
+  lockActivity: number;
 } {
   const forContract = (signals: Signal[]) =>
     signals.filter(
@@ -369,15 +417,17 @@ export function calculateOpportunityScore(
   const burnRate = weightedScore(forContract(burnSignals));
   const rankVolatility = weightedScore(forContract(streakSignals));
   const entrySignals = weightedScore(forContract(unstakeSignals));
+  const lockActivity = weightedScore(forContract(lockSignals));
 
   const score = Math.round(
-    rewardVelocity * 0.4 +
-      burnRate * 0.2 +
-      rankVolatility * 0.2 +
+    rewardVelocity * 0.3 +
+      lockActivity * 0.2 +
+      burnRate * 0.15 +
+      rankVolatility * 0.15 +
       entrySignals * 0.2
   );
 
-  return { score, rewardVelocity, burnRate, rankVolatility, entrySignals };
+  return { score, rewardVelocity, burnRate, rankVolatility, entrySignals, lockActivity };
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────

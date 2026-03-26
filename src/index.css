@@ -73,6 +73,10 @@
     @apply bg-radar-warning-dim text-radar-warning border border-radar-warning/20;
   }
 
+  .signal-lock {
+    @apply bg-radar-success-dim text-radar-success border border-radar-success/20;
+  }
+
   .signal-unstake {
     @apply bg-radar-blue-dim text-radar-blue border border-radar-blue/20;
   }

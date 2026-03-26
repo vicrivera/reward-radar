@@ -2,6 +2,7 @@ export {
   detectRewardSignals,
   detectBurnSignals,
   detectUnstakeSignals,
+  detectLockSignals,
   detectStreakSignals,
   calculateOpportunityScore,
   createRankSnapshot,

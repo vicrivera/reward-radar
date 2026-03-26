@@ -5,6 +5,7 @@ import {
   detectRewardSignals,
   detectBurnSignals,
   detectUnstakeSignals,
+  detectLockSignals,
   detectStreakSignals,
   createRankSnapshot,
 } from "@/engine";
@@ -90,8 +91,9 @@ export function useSignalProcessor() {
     const rewardSignals = detectRewardSignals(newEvents);
     const burnSignals = detectBurnSignals(newEvents);
     const unstakeSignals = detectUnstakeSignals(newEvents, topWallets);
+    const lockSignals = detectLockSignals(newEvents, topWallets);
 
-    const allNewSignals = [...rewardSignals, ...burnSignals, ...unstakeSignals];
+    const allNewSignals = [...rewardSignals, ...burnSignals, ...unstakeSignals, ...lockSignals];
 
     if (allNewSignals.length > 0) {
       appendSignals(allNewSignals);
@@ -130,7 +132,11 @@ export function useSignalProcessor() {
       weight: p.weight,
     }));
 
-    const streakSignals = detectStreakSignals(rankSnapshotRef.current, normalizedPoints, events ?? []);
+    const streakSignals = detectStreakSignals(
+      rankSnapshotRef.current,
+      normalizedPoints,
+      Array.isArray(events) ? events : []
+    );
 
     if (streakSignals.length > 0) {
       appendSignals(streakSignals);
