@@ -130,7 +130,7 @@ export function useSignalProcessor() {
       weight: p.weight,
     }));
 
-    const streakSignals = detectStreakSignals(rankSnapshotRef.current, normalizedPoints);
+    const streakSignals = detectStreakSignals(rankSnapshotRef.current, normalizedPoints, events ?? []);
 
     if (streakSignals.length > 0) {
       appendSignals(streakSignals);

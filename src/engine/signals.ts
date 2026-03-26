@@ -19,7 +19,7 @@ function makeSignalId(prefix: string, eventId?: string): string {
 // Calibrated against real Moats API data:
 // - USDC amounts are in 6 decimals (234271 = $0.23)
 // - WAVAX amounts are in 18 decimals (22235797971061259 = 0.022 AVAX)
-// - HEFE/CAMRY are in 18 decimals with large raw numbers
+// - HEFE/FREAK are in 18 decimals with large raw numbers
 // We convert to a human-readable value first, then apply token-class thresholds.
 
 const STABLECOIN_TOKENS = new Set([
@@ -260,19 +260,28 @@ export function detectUnstakeSignals(
 }
 
 // ─── Hot Streak Detector ───────────────────────────────────────────────────
-// Compares two rank snapshots. Since we poll every 60s but ranks change slowly,
-// we lower the threshold to 3+ ranks to catch movement in this ecosystem.
+// Compares two rank snapshots. Cross-references recent events to identify
+// which Moat(s) the wallet interacted with.
 
 export function detectStreakSignals(
   previous: RankSnapshot | null,
-  current: MoatPointsEntry[]
+  current: MoatPointsEntry[],
+  recentEvents: MoatEvent[] = []
 ): Signal[] {
   if (!previous) return [];
 
   // Don't fire streaks if the snapshot is less than 2 minutes old
-  // (avoids noise from rapid re-polls)
   const elapsed = Date.now() - previous.timestamp.getTime();
   if (elapsed < 120_000) return [];
+
+  // Build a lookup: wallet → most recent contractAddress from events
+  const walletToMoat = new Map<string, string>();
+  for (const event of recentEvents) {
+    const wallet = event.user.toLowerCase();
+    if (!walletToMoat.has(wallet)) {
+      walletToMoat.set(wallet, event.contractAddress);
+    }
+  }
 
   const signals: Signal[] = [];
 
@@ -280,7 +289,7 @@ export function detectStreakSignals(
     const prevEntry = previous.entries.get(entry.address.toLowerCase());
     if (!prevEntry) continue;
 
-    const rankDelta = prevEntry.rank - entry.rank; // Positive = moved up
+    const rankDelta = prevEntry.rank - entry.rank;
     const pointsDelta = entry.points - prevEntry.points;
 
     if (rankDelta >= 3 && pointsDelta > 0) {
@@ -293,13 +302,18 @@ export function detectStreakSignals(
         ? entry.username
         : truncateAddress(entry.address);
 
+      // Try to find which Moat they interacted with
+      const moatContract = walletToMoat.get(entry.address.toLowerCase()) ?? "";
+      const moatName = moatContract ? getMoatInfo(moatContract).name : "";
+      const moatSuffix = moatName ? ` via ${moatName}` : " on the ecosystem leaderboard";
+
       signals.push({
         id: makeSignalId("streak", entry.address),
         type: "streak",
         severity,
         title: `Hot streak: +${rankDelta} ranks`,
-        description: `${userLabel} jumped from #${prevEntry.rank} to #${entry.rank} (+${pointsDelta.toLocaleString()} pts). Aggressive accumulation.`,
-        contractAddress: "",
+        description: `${userLabel} jumped from #${prevEntry.rank} to #${entry.rank}${moatSuffix} (+${pointsDelta.toLocaleString()} pts).`,
+        contractAddress: moatContract,
         timestamp: new Date(),
         eventIds: [],
         meta: {
