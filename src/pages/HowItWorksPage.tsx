@@ -3,12 +3,9 @@ import { Link } from "react-router-dom";
 import {
   Radio,
   Zap,
-  Bell,
-  Share2,
   BarChart3,
   Trophy,
-  ArrowRight,
-  ExternalLink,
+  ArrowRight
 } from "lucide-react";
 
 export function HowItWorksPage() {
