@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import {
   Radio,
   Zap,
+  Bell,
+  Share2,
   BarChart3,
   Trophy,
   ArrowRight,
+  ExternalLink,
 } from "lucide-react";
 
 export function HowItWorksPage() {
@@ -129,11 +132,13 @@ export function HowItWorksPage() {
           to focus.
         </Step>
         <Step number={3} title="Enable alerts">
-          Go to the Alerts page and enable browser notifications with one
-          click. While you have the dashboard open, you'll get a desktop
-          notification when something big happens. Email and Telegram
-          alerts are coming soon — so you'll get notified even when you're
-          away.
+          Go to the Alerts page and enable browser notifications for
+          desktop alerts while the dashboard is open. Connect our{" "}
+          <a href="https://t.me/MoatsRewardRadarBot" target="_blank" rel="noopener noreferrer" className="text-radar-accent hover:underline">
+            Telegram bot
+          </a>{" "}
+          to get alerts even when you're away — just enough to know
+          something happened, then come back here to decide.
         </Step>
         <Step number={4} title="Share with your community">
           Use the Share page to generate a link for any specific Moat. Your

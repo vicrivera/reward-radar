@@ -16,6 +16,7 @@ Every Moat gets an **Opportunity Score** (0–100) that answers one question: "H
 - **Opportunity Score** — weighted score per Moat combining all signal types
 - **Cross-Moat comparison** — side-by-side with score breakdowns and verdicts
 - **Browser notifications** — one-click enable, fires on medium+ signals
+- **Telegram alerts** — real-time DM alerts via [@MoatsRewardRadarBot](https://t.me/MoatsRewardRadarBot), even when you're away from the dashboard
 - **Shareable Moat pages** — direct link + iframe embed for communities
 - **Top stakers marquee** — live ticker of the top 10 wallets
 - **8 badges** — gamification across 3 tiers, earned automatically, persist permanently
@@ -24,7 +25,7 @@ Every Moat gets an **Opportunity Score** (0–100) that answers one question: "H
 
 ## Screenshots
 
-![alt text](image.png)
+> Add screenshots here before submission.
 
 ## Tech Stack
 
@@ -51,7 +52,7 @@ npm run dev
 
 ## Roadmap
 
-- Email & Telegram alerts (server-side, lightweight "something happened" hooks that drive users back to the dashboard)
+- Email alerts (server-side, lightweight notifications that drive users back to the dashboard)
 - Supabase backend for global leaderboard and cross-device sync
 - Wallet connection for personalized signals
 - Historical opportunity score charts

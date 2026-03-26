@@ -63,7 +63,7 @@ const KNOWN_TOKENS: Record<string, { symbol: string; decimals: number }> = {
   "0x297731eb3cab3834525fc9ea061fd71d8f4645c9": { symbol: "BLAZE", decimals: 18 },
   "0xeb55fab1c23ec0aa5024ee593a12edcd031ecd9b": { symbol: "WHEREMALEK", decimals: 18 },
   "0xb8d7710f7d8349a506b75dd184f05777c82dad0c": { symbol: "ARENA", decimals: 18 },
-  "0x22683bbadd01473969f23709879187705a253763": { symbol: "LIL", decimals: 18 }
+  "0x22683bbadd01473969f23709879187705a253763": { symbol: "LIL", decimals: 18 },
 };
 
 export function getTokenInfo(address: string): { symbol: string; decimals: number } {

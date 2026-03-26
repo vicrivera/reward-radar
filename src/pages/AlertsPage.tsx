@@ -34,7 +34,7 @@ export function AlertsPage() {
       <div className="space-y-4">
         <BrowserNotificationCard />
         <SoundAlertCard />
-        <ComingSoonSection />
+        <ExternalAlertsSection />
       </div>
     </div>
   );
@@ -214,24 +214,25 @@ function SoundAlertCard() {
   );
 }
 
-// ─── Coming Soon — Email & Telegram ─────────────────────────────────────────
+// ─── Telegram & Email Alerts ────────────────────────────────────────────────
 
-function ComingSoonSection() {
+function ExternalAlertsSection() {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3 mt-6">
-        <Rocket size={14} className="text-radar-text-tertiary" />
+        <Rocket size={14} className="text-radar-accent" />
         <h3 className="text-sm font-semibold text-radar-text-primary">
-          Coming soon
+          Get alerts anywhere
         </h3>
       </div>
       <p className="text-[11px] text-radar-text-secondary mb-4 leading-relaxed">
-        Get alerts even when you're away from the dashboard. We'll send you
-        just enough to know something big happened — then come back here to
-        see the full picture and decide your next move.
+        Get alerts even when you're away from the dashboard. Just enough
+        to know something big happened — then come back to see the full
+        picture and decide.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <TelegramCard />
         <ComingSoonCard
           icon={<Mail size={20} className="text-radar-blue" />}
           iconBg="bg-radar-blue/10"
@@ -239,15 +240,39 @@ function ComingSoonSection() {
           description="Get notified when high-priority signals are detected. No spam — only the big moves."
           example="🔥 Big move in HEFE Moat — open your dashboard"
         />
-        <ComingSoonCard
-          icon={<Send size={20} className="text-radar-accent" />}
-          iconBg="bg-radar-accent/10"
-          title="Telegram bot"
-          description="Real-time alerts straight to your Telegram. The fastest way to catch opportunities."
-          example="💰 Reward spike across 2 Moats — check Reward Radar"
-        />
       </div>
     </div>
+  );
+}
+
+function TelegramCard() {
+  return (
+    <RadarCard>
+      <div className="flex flex-col items-center text-center py-3">
+        <div className="w-12 h-12 rounded-xl bg-radar-accent/10 flex items-center justify-center mb-3">
+          <Send size={20} className="text-radar-accent" />
+        </div>
+        <h3 className="text-sm font-medium text-radar-text-primary">
+          Telegram alerts
+        </h3>
+        <p className="text-[10px] text-radar-text-secondary mt-1 leading-relaxed">
+          Real-time alerts straight to your Telegram DMs. The fastest way
+          to catch opportunities when you're away.
+        </p>
+        <p className="text-[10px] text-radar-text-tertiary mt-2 italic">
+          "💰 Reward spike in HEFE Moat — check Reward Radar"
+        </p>
+        <a
+          href="https://t.me/MoatsRewardRadarBot"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 px-4 py-2 bg-radar-accent/15 border border-radar-accent/25 text-radar-accent rounded-lg text-xs font-semibold hover:bg-radar-accent/25 transition-colors inline-flex items-center gap-1.5"
+        >
+          <Send size={12} />
+          Open in Telegram
+        </a>
+      </div>
+    </RadarCard>
   );
 }
 
