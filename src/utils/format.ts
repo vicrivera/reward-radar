@@ -66,6 +66,7 @@ const KNOWN_TOKENS: Record<string, { symbol: string; decimals: number }> = {
   "0x22683bbadd01473969f23709879187705a253763": { symbol: "LIL", decimals: 18 },
   "0x8F961980518BC9ab302948De7948580666dc35D9": { symbol: "WAVAX/hCASH", decimals: 18 },
   "0x40146E96EE5297187022D1ca62A3169B5e45B0a4": { symbol: "DISH", decimals: 18 },
+  "0xca2e0f72653337d05b1abcebea5718a4a3e57a0b": { symbol: "SUPER", decimals: 18 },
 };
 
 export function getTokenInfo(address: string): { symbol: string; decimals: number } {
