@@ -193,6 +193,7 @@ export function useFilteredSignals(): Signal[] {
     }
 
     return true;
+  }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   });
 }
 
