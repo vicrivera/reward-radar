@@ -194,7 +194,6 @@ export function useFilteredSignals(): Signal[] {
 
     return true;
   }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  });
 }
 
 /** Returns active alert rules that match a given signal */
