@@ -21,10 +21,11 @@ export function getNotificationPermission(): NotificationPermission | "unsupport
 // ─── Send Notification ──────────────────────────────────────────────────────
 
 const SIGNAL_ICONS: Record<SignalType, string> = {
-  reward: "\u{1F4B0}",  // 💰
-  burn: "\u{1F525}",    // 🔥
-  streak: "\u{1F680}",  // 🚀
-  unstake: "\u{1F4E4}", // 📤
+  reward: "\u{1F4B0}",
+  burn: "\u{1F525}",
+  streak: "\u{1F680}",
+  unstake: "\u{1F4E4}",
+  lock: "\u{1F512}",
 };
 
 export function sendBrowserNotification(signal: Signal): void {

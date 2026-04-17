@@ -8,6 +8,7 @@ const SIGNAL_STYLES: Record<SignalType, string> = {
   burn: "signal-burn",
   streak: "signal-streak",
   unstake: "signal-unstake",
+  lock: "signal-lock",
 };
 
 const SIGNAL_LABELS: Record<SignalType, string> = {
@@ -15,6 +16,7 @@ const SIGNAL_LABELS: Record<SignalType, string> = {
   burn: "Burn",
   streak: "Streak",
   unstake: "Unstake",
+  lock: "Lock",
 };
 
 const SIGNAL_ICONS: Record<SignalType, string> = {
@@ -22,6 +24,7 @@ const SIGNAL_ICONS: Record<SignalType, string> = {
   burn: "🔥",
   streak: "🚀",
   unstake: "📤",
+  lock: "🔒",
 };
 
 export function SignalBadge({ type }: Readonly<{ type: SignalType }>) {

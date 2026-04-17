@@ -35,15 +35,17 @@ export function OpportunityBoard() {
     const burnSignals = signals.filter((s) => s.type === "burn");
     const streakSignals = signals.filter((s) => s.type === "streak");
     const unstakeSignals = signals.filter((s) => s.type === "unstake");
+    const lockSignals = signals.filter((s) => s.type === "lock");
 
     return Array.from(contracts)
       .map((contractAddress) => {
         const scores = calculateOpportunityScore(
-          rewardSignals,
-          burnSignals,
-          streakSignals,
-          unstakeSignals,
-          contractAddress
+            rewardSignals,
+            burnSignals,
+            streakSignals,
+            unstakeSignals,
+            lockSignals,       // add this
+            contractAddress
         );
 
         const contractSignals = signals
