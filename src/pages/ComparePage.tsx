@@ -53,6 +53,7 @@ export function ComparePage() {
     const burnSignals = signals.filter((s) => s.type === "burn");
     const streakSignals = signals.filter((s) => s.type === "streak");
     const unstakeSignals = signals.filter((s) => s.type === "unstake");
+    const lockSignals = signals.filter((s) => s.type === "lock");
 
     return Array.from(contracts)
       .map((contractAddress) => {
@@ -61,6 +62,7 @@ export function ComparePage() {
           burnSignals,
           streakSignals,
           unstakeSignals,
+          lockSignals,
           contractAddress
         );
 
