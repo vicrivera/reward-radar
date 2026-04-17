@@ -92,6 +92,20 @@ const MOAT_REGISTRY: Record<string, MoatInfo> = {
     rewardToken: "0x201d04f88bc9b3bdacdf0519a95e117f25062d38",
     imageUrl: "https://i.ibb.co/1fwQhp7B/wheremalek.jpg",
     accentColor: "#3B82F6",
+  },
+  "0xd4280e25a7969da08b7093e8b54068d693def66e": {
+    name: "Gator Dont Play Moat",
+    description: "GATOR token staking",
+    rewardToken: "0x1A31A8fD8BACB64b32dBcdcF5b2215f58Baf70c1",
+    imageUrl: "https://i.ibb.co/twrWDLC9/GATOR-logo.jpg",
+    accentColor: "#3B82F6",
+  },
+  "0xec7a708c9a9ac691d5e8be056bbd5c8251f003ea": {
+    name: "SEEDS Moat",
+    description: "SEEDS token staking",
+    rewardToken: "",
+    imageUrl: "https://i.ibb.co/0RRDSYjG/Seeds.png",
+    accentColor: "#3B82F6",
   }
 };
 
