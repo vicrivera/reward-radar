@@ -85,6 +85,7 @@ export function ComparePage() {
       burn: 0,
       streak: 0,
       unstake: 0,
+      lock: 0,
     };
     for (const signal of signals) {
       counts[signal.type]++;

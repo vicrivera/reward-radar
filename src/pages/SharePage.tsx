@@ -61,12 +61,14 @@ function SharedMoatView({
     const burnSignals = signals.filter((s) => s.type === "burn");
     const streakSignals = signals.filter((s) => s.type === "streak");
     const unstakeSignals = signals.filter((s) => s.type === "unstake");
+    const lockSignals = signals.filter((s) => s.type === "lock");
 
     return calculateOpportunityScore(
       rewardSignals,
       burnSignals,
       streakSignals,
       unstakeSignals,
+      lockSignals,
       contractAddress
     );
   }, [signals, contractAddress]);
