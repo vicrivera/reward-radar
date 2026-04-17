@@ -106,7 +106,15 @@ const MOAT_REGISTRY: Record<string, MoatInfo> = {
     rewardToken: "",
     imageUrl: "https://i.ibb.co/0RRDSYjG/Seeds.png",
     accentColor: "#3B82F6",
+  },
+  "0xe5a12711f9fe7e5263ec43a2a18eaec0a6b4c7cb": {
+    name: "DRAMA Moat",
+    description: "DRAMA token staking",
+    rewardToken: "",
+    imageUrl: "https://fortifi.fra1.cdn.digitaloceanspaces.com/AVAX_Drama_-_Black_BG.png",
+    accentColor: "#3B82F6",
   }
+
 };
 
 /**
