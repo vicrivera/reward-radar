@@ -68,6 +68,8 @@ const KNOWN_TOKENS: Record<string, { symbol: string; decimals: number }> = {
   "0x40146E96EE5297187022D1ca62A3169B5e45B0a4": { symbol: "DISH", decimals: 18 },
   "0xca2e0f72653337d05b1abcebea5718a4a3e57a0b": { symbol: "SUPER", decimals: 18 },
   "0x1A31A8fD8BACB64b32dBcdcF5b2215f58Baf70c1": { symbol: "GATOR", decimals: 18},
+  "0x566445F0D154D09573ec0Ae4e373C8340D41548e": { symbol: "FUNK", decimals: 18},
+  "0xDf50aD73b92C758bBF94869b4B7b9128bBe4a475": { symbol: "TOPIA", decimals: 18},
 };
 
 export function getTokenInfo(address: string): { symbol: string; decimals: number } {

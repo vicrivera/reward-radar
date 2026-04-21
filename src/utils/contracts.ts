@@ -113,7 +113,21 @@ const MOAT_REGISTRY: Record<string, MoatInfo> = {
     rewardToken: "",
     imageUrl: "https://fortifi.fra1.cdn.digitaloceanspaces.com/AVAX_Drama_-_Black_BG.png",
     accentColor: "#3B82F6",
-  }
+  },
+  "0x2638b56fa206078da45520b945adccccf1d90df4": {
+    name: "FUNK Moat",
+    description: "FUNK token staking",
+    rewardToken: "",
+    imageUrl: "https://i.ibb.co/p66BNP9G/funktoken.avif",
+    accentColor: "#3B82F6",
+  },
+  "0x5e16f968d0e33607eab44a2ed145bd6fb94f661d": {
+    name: "Cryptopia123 Moat",
+    description: "TOPIA token staking",
+    rewardToken: "",
+    imageUrl: "",
+    accentColor: "#3B82F6",
+  },
 
 };
 
